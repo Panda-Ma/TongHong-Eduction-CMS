@@ -2,7 +2,7 @@
   <div class="course-container">
     <el-card shadow="hover">
       <div class="system-user-search mb15" style="position: relative">
-        <el-button size="default" type="success" class="ml10" @click="onOpenAddCourse" plain>
+        <el-button size="default" type="success" class="ml10" @click="onAdd" plain>
           <el-icon>
             <ele-Plus/>
           </el-icon>
@@ -15,15 +15,15 @@
           批量删除
         </el-button>
         <el-input v-model="searchKey" placeholder="搜索..." clearable class="w-50 m-2" size="default"
-                  style="max-width: 300px;position: absolute;right: 30px" >
+                  style="max-width: 300px;position: absolute;right: 30px">
           <template #append>
-            <el-button @click="getKeyData" >
+            <el-button @click="search">
               <SvgIcon name="ele-Search"></SvgIcon>
             </el-button>
           </template>
         </el-input>
       </div>
-      <el-table :data="tableData.data" style="width: 100%" @selection-change="selectionChange">
+      <el-table :data="currentData" style="width: 100%" @selection-change="selectionChange" ref="tableRef" v-loading="tableData.loading">
         <el-table-column type="selection"></el-table-column>
         <el-table-column label="课程信息" align="center">
           <el-table-column label="主键" v-if="false" prop="id"></el-table-column>
@@ -60,27 +60,25 @@
             <el-button size="small" text type="primary" @click="onOpenCatalogue(scope.row)">
               目录
             </el-button>
-            <el-button size="small" text type="primary" @click="onUpload(scope.row)">
-              上传
+            <el-button size="small" text type="primary" @click="onOpenResources(scope.row)">
+              资料
             </el-button>
-            <el-button size="small" text type="primary" @click="onUpload(scope.row)">
+            <el-button size="small" text type="primary" @click="onEdit(scope.row)">
               修改
             </el-button>
-            <el-button type="danger" text size="small" @click="onRowDel(scope.row)">
+            <el-button type="danger" text size="small" @click="onDelete(scope.row)">
               删除
             </el-button>
           </template>
         </el-table-column>
       </el-table>
       <el-pagination
-          @size-change="onHandleSizeChange"
-          @current-change="onHandleCurrentChange"
+          v-model:page-size="tableData.pageSize"
+          v-model:current-page="tableData.currentPage"
           class="mt15"
           :pager-count="5"
           :page-sizes="[10, 20, 30]"
-          v-model:current-page="tableData.param.pageNum"
           background
-          v-model:page-size="tableData.param.pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="tableData.total"
       >
@@ -91,13 +89,14 @@
 </template>
 
 <script lang="ts">
-import {reactive, toRefs, defineComponent, onMounted, ref} from 'vue';
+import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
 import AddCourse from "/@/views/course/component/addCourse.vue";
+import {ElMessage, ElMessageBox} from "element-plus";
 
 // 定义接口来定义对象的类型
 interface TableDataRow {
-  id:Number,
+  id: Number,
   cover: string;
   courseName: string;
   describe: string;
@@ -105,16 +104,14 @@ interface TableDataRow {
   attribute: string;
   createTime: string;
 }
-
+// 分页
 interface TableDataState {
   tableData: {
     data: Array<TableDataRow>;
     total: number;
     loading: boolean;
-    param: {
-      pageNum: number;
-      pageSize: number;
-    };
+    currentPage: number; // 当前页码
+    pageSize: number;   // 每页显示的页数
   };
 }
 
@@ -123,27 +120,30 @@ export default defineComponent({
   components: {AddCourse, SvgIcon},
   setup() {
     const addCourseRef = ref()
-    let isDisable = ref(true) // 按钮禁用状态
-    let searchKey = ref('')   // 搜索关键字
+    const tableRef = ref()
+    const isDisable = ref(true) // 按钮禁用状态
+    const searchKey = ref('')   // 搜索关键字
+
     const state = reactive<TableDataState>({
       tableData: {
         data: [],
         total: 0,
         loading: false,
-        param: {
-          pageNum: 1,
-          pageSize: 10,
-        },
+        currentPage: 1,
+        pageSize: 10,
       },
     });
+    const currentData = computed(() => {
+      return state.tableData.data.slice((state.tableData.currentPage - 1) * state.tableData.pageSize, state.tableData.currentPage * state.tableData.pageSize)
+    })
     // 初始化表格数据
     const initTableData = () => {
       const data: Array<TableDataRow> = [];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 300; i++) {
         data.push({
-          id:1,
+          id: 1,
           cover: 'https://tse1-mm.cn.bing.net/th/id/OIP-C.n0_p3rYRuofABd3XudbZnAHaEo?pid=ImgDet&rs=1',
-          courseName: 'java',
+          courseName: `${i}`,
           describe: '的复古风根深是否就会收到尽快发货速度高的数据客观环境都是个地方见过很多了蒂固',
           lecturer: '12345678910',
           attribute: 'vueNextAdmin@123.com',
@@ -151,22 +151,51 @@ export default defineComponent({
         });
       }
       state.tableData.data = data;
-      state.tableData.total = state.tableData.data.length;
+      state.tableData.total = data.length;
     };
     // 添加新课程
-    const onOpenAddCourse = () => {
+    const onAdd = () => {
       addCourseRef.value.openDialog()
     }
-    // 禁用批量删除
+    const onDeleteAll = () => {
+      let arr = tableRef.value.getSelectionRows().map((ele: any) => ele.id)
+      ElMessageBox.confirm(`此操作将永久删除${arr.length}个课程, 是否继续`, '确认', {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      })
+          .then(() => {
+            ElMessage.success('删除成功');
+          })
+          .catch(() => {
+          });
+    }
+    const onDelete = (row: TableDataRow) => {
+      ElMessageBox.confirm(`此操作将永久删除课程：${row.courseName}, 是否继续`, '确认', {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      })
+          .then(() => {
+            ElMessage.success('删除成功');
+          })
+          .catch(() => {
+          });
+    };
+    // 没有选中选项时,禁用批量删除
     const selectionChange = (selection: any) => {
       isDisable.value = selection.length <= 0;
     }
     // 搜索框
-    const getKeyData=()=>{
+    const search= () => {
+      state.tableData.loading=true
+      setTimeout(()=>{
+        state.tableData.loading=false
+      },1000)
       console.log(searchKey.value)
     }
-    // 打开目录
-    const onOpenCatalogue=(row:TableDataRow)=>{
+    // 点击目录按钮
+    const onOpenCatalogue = (row: TableDataRow) => {
       console.log(row.id);
     }
     // 页面加载时
@@ -175,11 +204,15 @@ export default defineComponent({
     });
     return {
       ...toRefs(state),
+      tableRef,
       addCourseRef,
       searchKey,
-      getKeyData,
+      currentData,
+      search,
       selectionChange,
-      onOpenAddCourse,
+      onAdd,
+      onDelete,
+      onDeleteAll,
       onOpenCatalogue,
       isDisable
     };

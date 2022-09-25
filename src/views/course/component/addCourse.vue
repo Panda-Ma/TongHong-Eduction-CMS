@@ -118,6 +118,8 @@ export default defineComponent({
       if (!formEl) return
       await formEl.validate((valid, fields) => {
         if (valid) {
+          // 对表单进行提交
+
           ElMessage.info('添加成功')
           closeDialog();
         } else {
@@ -150,7 +152,7 @@ export default defineComponent({
 
       // 移除验证规则中的封面验证
       rules.cover=[{required: false, message: ''}]
-      // 这里需要保存响应的结果
+      // 这里需要保存响应结果中的id
     }
 
 
