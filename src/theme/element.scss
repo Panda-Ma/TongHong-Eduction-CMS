@@ -78,6 +78,9 @@
 	height: 56px !important;
 	line-height: 56px !important;
 }
+.el-menu-item:hover {
+	background-color: var(--next-color-menu-hover);
+}
 .el-menu-item,
 .el-sub-menu__title {
 	color: var(--next-bg-menuBarColor);

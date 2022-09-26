@@ -1,8 +1,8 @@
 <template>
 	<div class="layout-footer mt15" v-show="isDelayFooter">
 		<div class="layout-footer-warp">
-			<div>vue-next-admin，Made by lyt with ❤️</div>
-			<div class="mt5">深圳市 xxx 公司版权所有</div>
+			<div>通鸿教育后台管理 🌈 </div>
+			<div class="mt5">卤蛋团队所有</div>
 		</div>
 	</div>
 </template>

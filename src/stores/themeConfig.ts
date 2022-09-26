@@ -35,11 +35,11 @@ export const useThemeConfig = defineStore('themeConfig', {
 			topBarColor: '#606266',
 			// 是否开启顶栏背景颜色渐变
 			isTopBarColorGradual: false,
-			// 默认菜单导航背景颜色
-			menuBar: '#545c64',
-			// 默认菜单导航字体颜色
-			menuBarColor: '#eaeaea',
-			// 是否开启菜单背景颜色渐变
+			// 默认菜单导航-背景颜色
+			menuBar: '#ffffff',
+			// 默认菜单导航-字体颜色
+			menuBarColor: '#666666',
+			// 是否开启菜单背景-颜色渐变
 			isMenuBarColorGradual: false,
 			// 默认分栏菜单背景颜色
 			columnsMenuBar: '#545c64',
@@ -56,7 +56,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			// 是否开启菜单手风琴效果
 			isUniqueOpened: false,
 			// 是否开启固定 Header
-			isFixedHeader: false,
+			isFixedHeader: true,
 			// 初始化变量，用于更新菜单 el-scrollbar 的高度，请勿删除
 			isFixedHeaderChange: false,
 			// 是否开启经典布局分割菜单（仅经典布局生效）
@@ -70,7 +70,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			 * 界面显示
 			 */
 			// 是否开启侧边栏 Logo
-			isShowLogo: false,
+			isShowLogo: true,
 			// 初始化变量，用于 el-scrollbar 的高度更新，请勿删除
 			isShowLogoChange: false,
 			// 是否开启 Breadcrumb，强制经典、横向布局不显示
@@ -78,7 +78,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			// 是否开启 Tagsview
 			isTagsview: false,
 			// 是否开启 Breadcrumb 图标
-			isBreadcrumbIcon: false,
+			isBreadcrumbIcon: true,
 			// 是否开启 Tagsview 图标
 			isTagsviewIcon: false,
 			// 是否开启 TagsView 缓存

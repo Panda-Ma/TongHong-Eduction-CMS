@@ -27,35 +27,26 @@
         <el-table-column type="selection"></el-table-column>
         <el-table-column label="课程信息" align="center">
           <el-table-column label="主键" v-if="false" prop="id"></el-table-column>
-          <el-table-column prop="cover" label="封面" align="center">
-            <template #default="scope">
-              <el-image :preview-src-list="[scope.row.cover]" :src="scope.row.cover" style="width: 100px;height: 50px"
-                        fit="contain" preview-teleported>
-                <template #error>
-                  <div class="image-slot">
-                    <el-icon>
-                      <SvgIcon name="ele-Picture"></SvgIcon>
-                    </el-icon>
-                  </div>
-                </template>
+          <el-table-column prop="cover" label="封面" align="center" width="100px">
+            <template #default="scope" >
+              <el-image :preview-src-list="[scope.row.cover]" :src="scope.row.cover"
+                        fit="contain" preview-teleported style="width: 100%;min-height: 50px">
               </el-image>
             </template>
           </el-table-column>
-          <el-table-column prop="courseName" label="课程名称" show-overflow-tooltip align="center"></el-table-column>
-          <el-table-column prop="describe" label="简介" align="center" show-overflow-tooltip
-                           width="300"></el-table-column>
+          <el-table-column prop="courseName" label="课程名称" show-overflow-tooltip align="center" width="150px"></el-table-column>
+          <el-table-column prop="describe" label="简介" align="center"></el-table-column>
           <el-table-column prop="attribute" label="属性" show-overflow-tooltip align="center" width="100">
             <template #default="scope">
-              <el-tag type="success" v-if="scope.row.attribute">公开课</el-tag>
-              <el-tag v-else>任选课</el-tag>
+              <el-tag type="success" v-if="scope.row.attribute==='公开课'">公开课</el-tag>
+              <el-tag type="danger" v-if="scope.row.attribute==='定制课'">定制课</el-tag>
+              <el-tag v-else>内部课</el-tag>
             </template>
           </el-table-column>
-
         </el-table-column>
-        <el-table-column prop="lecturer" label="授课老师" show-overflow-tooltip align="center"
-                         width="120"></el-table-column>
+        <el-table-column prop="lecturer" label="授课老师" show-overflow-tooltip align="center" width="120"></el-table-column>
         <el-table-column prop="createTime" label="创建时间" align="center" width="100"></el-table-column>
-        <el-table-column label="操作" align="center" width="200">
+        <el-table-column label="操作" align="center" width="180">
           <template #default="scope">
             <el-button size="small" text type="primary" @click="onOpenCatalogue(scope.row)">
               目录
@@ -94,17 +85,17 @@ import SvgIcon from "/@/components/svgIcon/index.vue";
 import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 
-// 定义接口来定义对象的类型
+// 通过接口定义对象的类型
 interface TableDataRow {
-  id: Number,
-  cover: string;
-  courseName: string;
-  describe: string;
-  lecturer: string;
-  attribute: string;
-  createTime: string;
+  id: Number, // 主键
+  cover: string;  // 封面
+  courseName: string; // 课程名字
+  describe: string; // 简介
+  lecturer: string; // 讲师
+  attribute: string;  // 课程类型
+  createTime: string; // 创建时间
 }
-// 分页
+// 页面数据：表格数据、分页数据
 interface TableDataState {
   tableData: {
     data: Array<TableDataRow>;
@@ -142,9 +133,10 @@ export default defineComponent({
       for (let i = 0; i < 300; i++) {
         data.push({
           id: 1,
-          cover: 'https://tse1-mm.cn.bing.net/th/id/OIP-C.n0_p3rYRuofABd3XudbZnAHaEo?pid=ImgDet&rs=1',
+          cover: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
+          // cover: 'https://all.haoapk.cn/s2/image/ih9t7eondr1gmkvfs4w2zx68yujp5bq3.png',
           courseName: `${i}`,
-          describe: '的复古风根深是否就会收到尽快发货速度高的数据客观环境都是个地方见过很多了蒂固',
+          describe: '的复古风根深是否就会收到尽快发货速度高的数据客观dfjaskdhf就开始东莞艰苦奋斗看对方国家的咖啡馆的咖啡馆就看对方国家奉公克己都是分开过对方空间广阔第三方机构对方空间广阔的风景广阔的风景光看对方国家看风景光看对方国家对方空间广阔的风景光发的环境都是个地方见过很多了蒂固',
           lecturer: '12345678910',
           attribute: 'vueNextAdmin@123.com',
           createTime: new Date().toLocaleString(),
@@ -153,7 +145,7 @@ export default defineComponent({
       state.tableData.data = data;
       state.tableData.total = data.length;
     };
-    // 添加新课程
+    // 添加
     const onAdd = () => {
       addCourseRef.value.openDialog()
     }
