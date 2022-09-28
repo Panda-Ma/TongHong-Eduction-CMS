@@ -23,35 +23,41 @@
           </template>
         </el-input>
       </div>
-      <el-table :data="currentData" style="width: 100%" @selection-change="selectionChange" ref="tableRef" v-loading="tableData.loading">
+      <el-table :data="currentData" style="width: 100%" @selection-change="selectionChange" ref="tableRef"
+                v-loading="loading">
         <el-table-column type="selection"></el-table-column>
         <el-table-column label="课程信息" align="center">
           <el-table-column label="主键" v-if="false" prop="id"></el-table-column>
+          <el-table-column label="课件" v-if="false" prop="courseware"></el-table-column>
           <el-table-column prop="cover" label="封面" align="center" width="100px">
-            <template #default="scope" >
+            <template #default="scope">
               <el-image :preview-src-list="[scope.row.cover]" :src="scope.row.cover"
                         fit="contain" preview-teleported style="width: 100%;min-height: 50px">
               </el-image>
             </template>
           </el-table-column>
-          <el-table-column prop="courseName" label="课程名称" show-overflow-tooltip align="center" width="150px"></el-table-column>
+          <el-table-column prop="courseName" label="课程名称" show-overflow-tooltip align="center"
+                           width="150px"></el-table-column>
           <el-table-column prop="describe" label="简介" align="center"></el-table-column>
           <el-table-column prop="attribute" label="属性" show-overflow-tooltip align="center" width="100">
             <template #default="scope">
               <el-tag type="success" v-if="scope.row.attribute==='公开课'">公开课</el-tag>
-              <el-tag type="danger" v-if="scope.row.attribute==='定制课'">定制课</el-tag>
+              <el-tag type="danger" v-else-if="scope.row.attribute==='定制课'">定制课</el-tag>
               <el-tag v-else>内部课</el-tag>
             </template>
           </el-table-column>
+          <el-table-column prop="courseTime" label="课时" align="center" width="60"></el-table-column>
+
         </el-table-column>
-        <el-table-column prop="lecturer" label="授课老师" show-overflow-tooltip align="center" width="120"></el-table-column>
+        <el-table-column prop="lecturer" label="授课老师" show-overflow-tooltip align="center"
+                         width="120"></el-table-column>
         <el-table-column prop="createTime" label="创建时间" align="center" width="100"></el-table-column>
         <el-table-column label="操作" align="center" width="180">
           <template #default="scope">
             <el-button size="small" text type="primary" @click="onOpenCatalogue(scope.row)">
               目录
             </el-button>
-            <el-button size="small" text type="primary" @click="onOpenResources(scope.row)">
+            <el-button size="small" text type="primary" @click="onOpenCourseware(scope.row)">
               资料
             </el-button>
             <el-button size="small" text type="primary" @click="onEdit(scope.row)">
@@ -64,18 +70,20 @@
         </el-table-column>
       </el-table>
       <el-pagination
-          v-model:page-size="tableData.pageSize"
-          v-model:current-page="tableData.currentPage"
+          v-model:page-size="pageSize"
+          v-model:current-page="currentPage"
           class="mt15"
           :pager-count="5"
           :page-sizes="[10, 20, 30]"
           background
           layout="total, sizes, prev, pager, next, jumper"
-          :total="tableData.total"
+          :total="total"
       >
       </el-pagination>
     </el-card>
     <AddCourse ref="addCourseRef"></AddCourse>
+    <edit-course ref="editCourseRef"></edit-course>
+    <courseware ref="coursewareRef"></courseware>
   </div>
 </template>
 
@@ -83,67 +91,80 @@
 import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
 import AddCourse from "/@/views/course/component/addCourse.vue";
-import {ElMessage, ElMessageBox} from "element-plus";
+import { ElMessage, ElMessageBox} from "element-plus";
+import EditCourse from "/@/views/course/component/editCourse.vue";
+import {Course} from "/@/views/course/interface";
+import {initTable} from "/@/api/course";
+import Courseware from "/@/views/course/component/courseware.vue";
 
-// 通过接口定义对象的类型
-interface TableDataRow {
-  id: Number, // 主键
-  cover: string;  // 封面
-  courseName: string; // 课程名字
-  describe: string; // 简介
-  lecturer: string; // 讲师
-  attribute: string;  // 课程类型
-  createTime: string; // 创建时间
-}
+
 // 页面数据：表格数据、分页数据
-interface TableDataState {
-  tableData: {
-    data: Array<TableDataRow>;
-    total: number;
-    loading: boolean;
-    currentPage: number; // 当前页码
-    pageSize: number;   // 每页显示的页数
-  };
+interface TableState {
+  data: Array<Course>;
+  total: number;
+  loading: boolean;
+  currentPage: number; // 当前页码
+  pageSize: number;   // 每页显示的页数
 }
 
 export default defineComponent({
   name: 'course',
-  components: {AddCourse, SvgIcon},
+  components: {Courseware, EditCourse, AddCourse, SvgIcon},
   setup() {
-    const addCourseRef = ref()
     const tableRef = ref()
+    const addCourseRef = ref()
+    const editCourseRef = ref()
+    const coursewareRef = ref()
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
 
-    const state = reactive<TableDataState>({
-      tableData: {
-        data: [],
-        total: 0,
-        loading: false,
-        currentPage: 1,
-        pageSize: 10,
-      },
+    const state = reactive<TableState>({
+      data: [],
+      total: 0,
+      loading: false,
+      currentPage: 1,
+      pageSize: 10,
     });
     const currentData = computed(() => {
-      return state.tableData.data.slice((state.tableData.currentPage - 1) * state.tableData.pageSize, state.tableData.currentPage * state.tableData.pageSize)
+      return state.data.slice((state.currentPage - 1) * state.pageSize, state.currentPage * state.pageSize)
     })
     // 初始化表格数据
     const initTableData = () => {
-      const data: Array<TableDataRow> = [];
-      for (let i = 0; i < 300; i++) {
+      const data: Array<Course> = [];
+      // initTable().then((res) => {
+      //   console.log(res);
+      //   res.data.forEach((val: any) => {
+      //     data.push({
+      //       id: val.id,
+      //       cover: val.img,
+      //       courseName: val.courseName,
+      //       describe: val.introduction,
+      //       lecturer: val.teacher,
+      //       attribute: val.attribute,
+      //       createTime: val.createTime,
+      //       courseware:val.courseware
+      //       courseTime:val.courseTime
+      //     })
+      //   })
+      //   state.data = data;
+      //   state.total = data.length;
+      // })
+
+      for (let i = 0; i < 100; i++) {
         data.push({
-          id: 1,
+          id: i,
           cover: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
-          // cover: 'https://all.haoapk.cn/s2/image/ih9t7eondr1gmkvfs4w2zx68yujp5bq3.png',
           courseName: `${i}`,
           describe: '的复古风根深是否就会收到尽快发货速度高的数据客观dfjaskdhf就开始东莞艰苦奋斗看对方国家的咖啡馆的咖啡馆就看对方国家奉公克己都是分开过对方空间广阔第三方机构对方空间广阔的风景广阔的风景光看对方国家看风景光看对方国家对方空间广阔的风景光发的环境都是个地方见过很多了蒂固',
           lecturer: '12345678910',
-          attribute: 'vueNextAdmin@123.com',
+          attribute: '公开课',
           createTime: new Date().toLocaleString(),
+          courseware: 'dfdsd.pdf',
+          courseTime: 200
         });
       }
-      state.tableData.data = data;
-      state.tableData.total = data.length;
+      state.data = data;
+      state.total = data.length;
     };
     // 添加
     const onAdd = () => {
@@ -155,40 +176,45 @@ export default defineComponent({
         confirmButtonText: '删除',
         cancelButtonText: '取消',
         type: 'warning',
+        callback: () => {
+
+        }
+      }).then(() => {
+
+        ElMessage.success('删除成功');
       })
-          .then(() => {
-            ElMessage.success('删除成功');
-          })
-          .catch(() => {
-          });
     }
-    const onDelete = (row: TableDataRow) => {
+    // 点击目录按钮
+    const onOpenCatalogue = (row: Course) => {
+      console.log('调用成功');
+    }
+    const onOpenCourseware = (row: Course) => {
+      coursewareRef.value.openDialog(row)
+    }
+    const onEdit = (row: Course) => {
+      editCourseRef.value.openDialog(row)
+    }
+    const onDelete = (row: Course) => {
       ElMessageBox.confirm(`此操作将永久删除课程：${row.courseName}, 是否继续`, '确认', {
         confirmButtonText: '删除',
         cancelButtonText: '取消',
         type: 'warning',
+      }).then(()=>{ // 对应confirm
+        ElMessage.success('删除成功');
       })
-          .then(() => {
-            ElMessage.success('删除成功');
-          })
-          .catch(() => {
-          });
+
     };
     // 没有选中选项时,禁用批量删除
     const selectionChange = (selection: any) => {
       isDisable.value = selection.length <= 0;
     }
     // 搜索框
-    const search= () => {
-      state.tableData.loading=true
-      setTimeout(()=>{
-        state.tableData.loading=false
-      },1000)
+    const search = () => {
+      state.loading = true
+      setTimeout(() => {
+        state.loading = false
+      }, 1000)
       console.log(searchKey.value)
-    }
-    // 点击目录按钮
-    const onOpenCatalogue = (row: TableDataRow) => {
-      console.log(row.id);
     }
     // 页面加载时
     onMounted(() => {
@@ -198,14 +224,18 @@ export default defineComponent({
       ...toRefs(state),
       tableRef,
       addCourseRef,
+      editCourseRef,
+      coursewareRef,
       searchKey,
       currentData,
       search,
       selectionChange,
       onAdd,
+      onOpenCatalogue,
+      onOpenCourseware,
+      onEdit,
       onDelete,
       onDeleteAll,
-      onOpenCatalogue,
       isDisable
     };
   },

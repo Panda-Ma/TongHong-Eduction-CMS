@@ -1,7 +1,7 @@
 <template>
 	<div class="layout-footer mt15" v-show="isDelayFooter">
 		<div class="layout-footer-warp">
-			<div>通鸿教育后台管理 🌈 </div>
+			<div>通鸿教育后台管理</div>
 			<div class="mt5">卤蛋团队所有</div>
 		</div>
 	</div>

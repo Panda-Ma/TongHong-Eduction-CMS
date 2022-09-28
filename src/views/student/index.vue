@@ -23,7 +23,7 @@
           </template>
         </el-input>
       </div>
-      <el-table :data="currentData" style="width: 100%" @selection-change="selectionChange" ref="tableRef" v-loading="tableData.loading">
+      <el-table :data="currentData" style="width: 100%" @selection-change="selectionChange" ref="tableRef" v-loading="loading">
         <el-table-column type="selection"></el-table-column>
         <el-table-column label="主键" v-if="false" prop="id"></el-table-column>
         <el-table-column prop="avatar" label="头像" align="center" width="100px">
@@ -51,14 +51,14 @@
         </el-table-column>
       </el-table>
       <el-pagination
-          v-model:page-size="tableData.pageSize"
-          v-model:current-page="tableData.currentPage"
+          v-model:page-size="pageSize"
+          v-model:current-page="currentPage"
           class="mt15"
           :pager-count="5"
           :page-sizes="[10, 20, 30]"
           background
           layout="total, sizes, prev, pager, next, jumper"
-          :total="tableData.total"
+          :total="total"
       >
       </el-pagination>
     </el-card>
@@ -71,27 +71,16 @@ import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
 import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
+import {Student} from "/@/views/student/interface";
 
-// 通过接口定义对象的类型
-interface TableDataRow {
-  id: Number, // 主键
-  avatar: string;  // 头像
-  userName: string; // 姓名
-  account: string; // 账号
-  studentId: string; // 学号
-  phone: string;  // 手机号码
-  qq:string; // QQ号码
-  email:string; // 电子邮箱
-}
+
 // 页面数据：表格数据、分页数据
-interface TableDataState {
-  tableData: {
-    data: Array<TableDataRow>;
+interface TableState {
+    data: Array<Student>;
     total: number;
     loading: boolean;
     currentPage: number; // 当前页码
     pageSize: number;   // 每页显示的页数
-  };
 }
 
 export default defineComponent({
@@ -103,21 +92,19 @@ export default defineComponent({
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
 
-    const state = reactive<TableDataState>({
-      tableData: {
+    const state = reactive<TableState>({
         data: [],
         total: 0,
         loading: false,
         currentPage: 1,
         pageSize: 10,
-      },
     });
     const currentData = computed(() => {
-      return state.tableData.data.slice((state.tableData.currentPage - 1) * state.tableData.pageSize, state.tableData.currentPage * state.tableData.pageSize)
+      return state.data.slice((state.currentPage - 1) * state.pageSize, state.currentPage * state.pageSize)
     })
     // 初始化表格数据
     const initTableData = () => {
-      const data: Array<TableDataRow> = [];
+      const data: Array<Student> = [];
       for (let i = 0; i < 300; i++) {
         data.push({
           id: 1,
@@ -130,8 +117,8 @@ export default defineComponent({
           email: 'vueNextAdmin@123.com',
         });
       }
-      state.tableData.data = data;
-      state.tableData.total = data.length;
+      state.data = data;
+      state.total = data.length;
     };
     // 添加
     const onAdd = () => {
@@ -150,7 +137,7 @@ export default defineComponent({
           .catch(() => {
           });
     }
-    const onDelete = (row: TableDataRow) => {
+    const onDelete = (row: Student) => {
       ElMessageBox.confirm(`此操作将永久删除该学生：${row.userName}, 是否继续`, '确认', {
         confirmButtonText: '删除',
         cancelButtonText: '取消',
@@ -168,9 +155,9 @@ export default defineComponent({
     }
     // 搜索框
     const search= () => {
-      state.tableData.loading=true
+      state.loading=true
       setTimeout(()=>{
-        state.tableData.loading=false
+        state.loading=false
       },1000)
       console.log(searchKey.value)
     }

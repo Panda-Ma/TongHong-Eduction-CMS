@@ -6,11 +6,8 @@
         <el-card shadow="hover" header="个人信息">
           <div class="personal-user">
             <div class="personal-user-left">
-              <!--							<el-upload class="h100 personal-user-left-upload" action="https://jsonplaceholder.typicode.com/posts/" multiple :limit="1">-->
-              <!--								<img src="https://img2.baidu.com/it/u=1978192862,2048448374&fm=253&fmt=auto&app=138&f=JPEG?w=504&h=500" />-->
-              <!--							</el-upload>-->
               <div class="waterfall-first-item" v-waves>
-                <el-upload :action="VITE_PROFILE_AVATAR" :before-upload="beforeAvatarUpload"
+                <el-upload :action="VITE_UPLOAD_IMG" :before-upload="beforeAvatarUpload"
                            :on-success="handleAvatarSuccess" :show-file-list="false">
                   <el-avatar :size="150"
                              :src="avatarUrl"/>
@@ -165,7 +162,7 @@ interface PersonalState {
 export default defineComponent({
   name: 'profile',
   setup() {
-    const VITE_PROFILE_AVATAR=import.meta.env.VITE_PROFILE_AVATAR
+    const VITE_UPLOAD_IMG=import.meta.env.VITE_UPLOAD_IMG
     const state = reactive<PersonalState>({
       newsInfoList,
       avatarUrl:'https://img2.baidu.com/it/u=1978192862,2048448374&fm=253&fmt=auto&app=138&f=JPEG?w=504&h=500',
@@ -206,7 +203,7 @@ export default defineComponent({
 
     return {
       currentTime,
-      VITE_PROFILE_AVATAR,
+      VITE_UPLOAD_IMG,
       beforeAvatarUpload,
       handleAvatarSuccess,
       ...toRefs(state),

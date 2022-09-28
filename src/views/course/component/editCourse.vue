@@ -1,6 +1,6 @@
 <template>
   <div class="add-course-container">
-    <el-dialog title="添加新课程" v-model="isShowDialog" width="769px">
+    <el-dialog title="修改" v-model="isShowDialog" width="769px">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
         <el-row>
@@ -12,7 +12,7 @@
             </el-col>
             <el-col class="mb20" :span="18">
               <el-form-item label="课程类型" prop="attribute">
-                <el-select v-model="data.attribute" placeholder="课程类型" class="w100">
+                <el-select v-model="data.attribute" placeholder="课程类型"  class="w100">
                   <el-option label="公开课" value="公开课"></el-option>
                   <el-option label="内部课" value="内部课"></el-option>
                   <el-option label="定制课" value="定制课"></el-option>
@@ -21,7 +21,7 @@
             </el-col>
           </el-col>
           <el-col :span="12">
-            <el-form-item prop="cover">
+            <el-form-item prop="cover" >
               <el-upload
                   class="avatar-uploader"
                   :action="VITE_UPLOAD_IMG"
@@ -67,7 +67,7 @@
       <template #footer>
 				<span class="dialog-footer">
 					<el-button @click="onCancel" size="default">取 消</el-button>
-					<el-button type="primary" @click="onSubmit(formRef)" size="default">新 增</el-button>
+					<el-button type="primary" @click="onSubmit(formRef)" size="default">提 交</el-button>
 				</span>
       </template>
     </el-dialog>
@@ -78,31 +78,38 @@
 import {reactive, toRefs, defineComponent, ref} from 'vue';
 import type {UploadProps, FormRules, FormInstance} from 'element-plus'
 import {ElMessage} from 'element-plus'
-import {CourseDialog} from "/@/views/course/interface";
-import {addCourse} from "/@/api/course";
+import {Course, CourseDialog} from "/@/views/course/interface";
+import router from "/@/router";
 
 export default defineComponent({
-  name: 'addCourse',
+  name: 'editCourse',
   setup: function () {
     const formRef = ref<FormInstance>()
-    const VITE_UPLOAD_IMG = import.meta.env.VITE_UPLOAD_IMG
+    const VITE_UPLOAD_IMG=import.meta.env.VITE_UPLOAD_IMG
     const state = reactive<CourseDialog>({
       isShowDialog: false,
       data: {
-        id: -1,
+        id:-1,
         courseName: '',
         describe: '',
         lecturer: '',
         attribute: '',
         createTime: '',
-        cover: '',
-        courseware: '',
-        courseTime:0
+        cover:'',
+        courseware:''
+        ,courseTime:0
       },
     });
     // 打开弹窗
-    const openDialog = () => {
+    const openDialog = (data:Course) => {
       state.isShowDialog = true;
+      state.data.id=data.id;
+      state.data.courseName=data.courseName
+      state.data.describe=data.describe
+      state.data.lecturer=data.lecturer
+      state.data.attribute=data.attribute
+      state.data.cover=data.cover
+      state.data.courseTime=data.courseTime
     };
     // 关闭弹窗
     const closeDialog = () => {
@@ -118,8 +125,9 @@ export default defineComponent({
       if (!formEl) return
       await formEl.validate((valid, fields) => {
         if (valid) {
+          // 对表单进行提交
 
-          ElMessage.success('添加成功')
+          ElMessage.success('修改成功')
           closeDialog();
         } else {
           ElMessage.error('必须填写信息')
@@ -149,12 +157,11 @@ export default defineComponent({
         response,
         uploadFile
     ) => {
-      console.log(response);
       state.data.cover = URL.createObjectURL(uploadFile.raw!)
       ElMessage.success('上传成功')
+
       // 移除验证规则中的封面验证
       rules.cover = [{required: false, message: ''}]
-      // 这里需要保存响应结果中的id
     }
 
 

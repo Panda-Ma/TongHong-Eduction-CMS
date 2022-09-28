@@ -8,6 +8,7 @@ import {useRoutesList} from '/@/stores/routesList';
 import {Session} from '/@/utils/storage';
 import {staticRoutes} from '/@/router/route';
 import {initFrontEndControlRoutes} from '/@/router/frontEnd';
+import {ElMessage} from "element-plus";
 
 /**
  * 1、前端控制路由时：isRequestRoutes 为 false，需要写 roles，需要走 setFilterRoute 方法。
@@ -91,22 +92,25 @@ router.beforeEach(async (to, from, next) => {
     NProgress.configure({showSpinner: false});
     if (to.meta.title) NProgress.start();
     const token = Session.get('token');
-    if (to.path === '/login' && !token) {
-        next();
-        NProgress.done();
-    } else {
-        if (!token) {
+    if (!token) {    // 没有token
+        if (to.path === '/login') {   // 进入登陆页，不作修改
+            next();
+            NProgress.done();
+        } else {   //没有token,但是进入系统，拦截请求
             next(`/login?redirect=${to.path}&params=${JSON.stringify(to.query ? to.query : to.params)}`);
             Session.clear();
             NProgress.done();
-        } else if (token && to.path === '/login') {
+            ElMessage.error('抱歉，请先登陆')
+        }
+    } else {    // 有token
+        if (to.path === '/login') { // 有token但是前往登陆页，直接跳转到home首页
             next('/home');
             NProgress.done();
-        } else {
+            ElMessage.success('你已登陆')
+        } else {    // 有token，跳转到指定页面
             const storesRoutesList = useRoutesList(pinia);
             const {routesList} = storeToRefs(storesRoutesList);
             if (routesList.value.length === 0) {
-                // https://gitee.com/lyt-top/vue-next-admin/issues/I5F1HP
                 //前端路由: 路由数据初始化，防止刷新时丢失
                 await initFrontEndControlRoutes();
                 // 动态添加路由：防止非首页刷新时跳转回首页的问题
@@ -117,6 +121,8 @@ router.beforeEach(async (to, from, next) => {
             }
         }
     }
+
+
 });
 
 // 路由加载后

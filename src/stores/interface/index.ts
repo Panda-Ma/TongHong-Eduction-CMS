@@ -5,11 +5,16 @@
 
 // 用户信息
 export interface UserInfosState {
-	authBtnList: string[];
-	photo: string;
-	roles: string[];
-	time: number;
-	userName: string;
+	// * 为 新增属性
+	id:number;	// 主键 *
+	userName: string;	// 账号
+	name:string;	// 姓名 *
+	photo: string;	// 头像
+	roles: string[];	// 权限 ['admin'] 、 ['common']
+	authBtnList: string[];	// 权限按钮
+	phone:string;	// 手机 *
+	email:string; 	// 电子邮箱 *
+	time: number;	// 登陆时间
 }
 export interface UserInfosStates {
 	userInfos: UserInfosState;
