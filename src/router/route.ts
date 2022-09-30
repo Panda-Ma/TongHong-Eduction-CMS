@@ -106,6 +106,23 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 					roles: ['admin','common'],
 					icon: 'fa fa-list-alt',
 				},
+				children:[
+					{
+						path: '/course/catalog',
+						name: 'catalog',
+						component: () => import('/@/views/course/component/catalog.vue'),
+						meta: {
+							title: '课程目录',
+							isLink: '',
+							isHide: true,
+							isKeepAlive: true,
+							isAffix: false,
+							isIframe: false,
+							roles: ['admin','common'],
+							icon: 'ele-Reading',
+						},
+					},
+				]
 			},
 			{
 				path: '/quiz',

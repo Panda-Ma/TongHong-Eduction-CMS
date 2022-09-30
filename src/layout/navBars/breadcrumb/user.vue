@@ -68,6 +68,7 @@ import {storeToRefs} from 'pinia';
 import {useUserInfo} from '/@/stores/userInfo';
 import {useThemeConfig} from '/@/stores/themeConfig';
 import {Session, Local} from '/@/utils/storage';
+import Cookies from 'js-cookie'
 import UserNews from '/@/layout/navBars/breadcrumb/userNews.vue';
 import Search from '/@/layout/navBars/breadcrumb/search.vue';
 
@@ -140,8 +141,10 @@ export default defineComponent({
           },
         })
             .then(async () => {
-              // 清除缓存/token等
+              // 清除缓存等
               Session.clear();
+              //清除token
+              Cookies.remove('token')
               // 使用 reload 时，不需要调用 resetRoute() 重置路由
               window.location.reload();
             })

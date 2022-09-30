@@ -40,11 +40,12 @@ import {toRefs, reactive, defineComponent, computed, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {ElMessage, FormInstance} from 'element-plus';
 import {initFrontEndControlRoutes} from '/@/router/frontEnd';
-import {Session} from '/@/utils/storage';
+import {Local, Session} from '/@/utils/storage';
 import {formatAxis} from '/@/utils/formatTime';
 import {NextLoading} from '/@/utils/loading';
 import {signIn} from "/@/api/login";
 import {UserInfosState} from "/@/stores/interface";
+import Cookies from 'js-cookie';
 
 export default defineComponent({
   name: 'loginAccount',
@@ -81,16 +82,53 @@ export default defineComponent({
       })
     };
     // 检查账号密码是否正确
-    const verify =  async() => {
+    const verify = async () => {
       // 按钮显示加载动画
       state.loading = true;
+      // localLogin()
 
-      const userInfos:UserInfosState = {
+      //请求登陆接口
+      signIn({
+        username: state.data.userName,
+        password: state.data.password
+      }).then(async (res:any) => {
+        const data = res.data;
+        if (res.code == 200) {
+          const userInfos: UserInfosState = {
+            id: data.id,
+            userName: data.username,
+            name: data.name,
+            photo: data.img,
+            roles: data.role === 1 ? ['admin'] : ['common'],
+            authBtnList: ['btn.add', 'btn.del', 'btn.edit', 'btn.link'],
+            phone: data.number,
+            email: data.email,
+            time: new Date().getTime(), //登陆时间
+          }
+          // 用户信息存放到localStorage中
+          Local.set('userInfos', userInfos);
+
+          // token存放到cookie中
+          // Cookies.set('token',res.map.token,{expires:30,domain:'10.60.40.105',path:'/'});
+          Cookies.set('token', Math.random().toString(36).substring(0));
+
+          // 更新信息到 路由、pinia
+          await initFrontEndControlRoutes();
+          signInSuccess();
+        } else {
+          ElMessage.error('账号或密码错误')
+        }
+        // 关闭 loading
+        state.loading = false;
+      })
+    }
+    const localLogin = async() => {
+      const userInfos: UserInfosState = {
         id: 1,
         userName: '123088',
         name: 'mzx',
         photo: 'https://img2.baidu.com/it/u=1978192862,2048448374&fm=253&fmt=auto&app=138&f=JPEG?w=504&h=500',
-        roles:  ['admin'] ,
+        roles: ['admin'],
         authBtnList: ['btn.add', 'btn.del', 'btn.edit', 'btn.link'],
         phone: '1888888',
         email: 'xxxemail',
@@ -104,40 +142,7 @@ export default defineComponent({
       // 更新信息到 路由、pinia
       await initFrontEndControlRoutes();
       signInSuccess();
-      // 请求登陆接口
-      // signIn({
-      //   username: state.data.userName,
-      //   password: state.data.password
-      // }).then(async (rsp) => {
-      //   const res = rsp.data;
-      //   if (rsp.code == 200) {
-      //     const userInfos: UserInfosState = {
-      //       id: res.id,
-      //       userName: res.username,
-      //       name: res.name,
-      //       photo: res.img,
-      //       roles: res.role === 1 ? ['admin'] : ['common'],
-      //       authBtnList: ['btn.add', 'btn.del', 'btn.edit', 'btn.link'],
-      //       phone: res.number,
-      //       email: res.email,
-      //       time: new Date().getTime(), //登陆时间
-      //     }
-      //     // 用户信息存放到sessionStorage中
-      //     Session.set('userInfo', userInfos);
-      //
-      //     // 随机生成一个token,存放到cookie中
-      //     Session.set('token', Math.random().toString(36).substring(0));
-      //     // 更新信息到 路由、pinia
-      //     await initFrontEndControlRoutes();
-      //     signInSuccess();
-      //   } else {
-      //     ElMessage.error('账号或密码错误')
-      //   }
-      //   // 关闭 loading
-      //   state.loading = false;
-      // })
     }
-
 
     // 登录成功后的跳转
     const signInSuccess = () => {
@@ -158,7 +163,8 @@ export default defineComponent({
       onSignIn,
       ...toRefs(state),
       rules,
-      formRef
+      formRef,
+      localLogin
     };
   },
 });

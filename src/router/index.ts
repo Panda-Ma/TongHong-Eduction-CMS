@@ -9,7 +9,7 @@ import {Session} from '/@/utils/storage';
 import {staticRoutes} from '/@/router/route';
 import {initFrontEndControlRoutes} from '/@/router/frontEnd';
 import {ElMessage} from "element-plus";
-
+import Cookies from 'js-cookie'
 /**
  * 1、前端控制路由时：isRequestRoutes 为 false，需要写 roles，需要走 setFilterRoute 方法。
  * 2、后端控制路由时：isRequestRoutes 为 true，不需要写 roles，不需要走 setFilterRoute 方法），
@@ -91,7 +91,7 @@ export function formatTwoStageRoutes(arr: any) {
 router.beforeEach(async (to, from, next) => {
     NProgress.configure({showSpinner: false});
     if (to.meta.title) NProgress.start();
-    const token = Session.get('token');
+    const token = Cookies.get('token');
     if (!token) {    // 没有token
         if (to.path === '/login') {   // 进入登陆页，不作修改
             next();

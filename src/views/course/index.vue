@@ -81,9 +81,9 @@
       >
       </el-pagination>
     </el-card>
-    <AddCourse ref="addCourseRef"></AddCourse>
-    <edit-course ref="editCourseRef"></edit-course>
-    <courseware ref="coursewareRef"></courseware>
+    <AddCourse ref="addCourseRef" @tableChange="initTableData"></AddCourse>
+    <edit-course ref="editCourseRef" @tableChange="initTableData"></edit-course>
+    <courseware ref="coursewareRef" @tableChange="initTableData"></courseware>
   </div>
 </template>
 
@@ -91,12 +91,12 @@
 import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
 import AddCourse from "/@/views/course/component/addCourse.vue";
-import { ElMessage, ElMessageBox} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 import EditCourse from "/@/views/course/component/editCourse.vue";
 import {Course} from "/@/views/course/interface";
-import {initTable} from "/@/api/course";
+import {deleteCourse, initTable, searchInfo} from "/@/api/course";
 import Courseware from "/@/views/course/component/courseware.vue";
-
+import {useRouter} from "vue-router";
 
 // 页面数据：表格数据、分页数据
 interface TableState {
@@ -117,6 +117,7 @@ export default defineComponent({
     const coursewareRef = ref()
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
+    const router = useRouter()
 
     const state = reactive<TableState>({
       data: [],
@@ -130,42 +131,45 @@ export default defineComponent({
     })
     // 初始化表格数据
     const initTableData = () => {
-      const data: Array<Course> = [];
-      // initTable().then((res) => {
-      //   console.log(res);
-      //   res.data.forEach((val: any) => {
-      //     data.push({
-      //       id: val.id,
-      //       cover: val.img,
-      //       courseName: val.courseName,
-      //       describe: val.introduction,
-      //       lecturer: val.teacher,
-      //       attribute: val.attribute,
-      //       createTime: val.createTime,
-      //       courseware:val.courseware
-      //       courseTime:val.courseTime
-      //     })
-      //   })
-      //   state.data = data;
-      //   state.total = data.length;
-      // })
-
-      for (let i = 0; i < 100; i++) {
-        data.push({
-          id: i,
-          cover: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
-          courseName: `${i}`,
-          describe: '的复古风根深是否就会收到尽快发货速度高的数据客观dfjaskdhf就开始东莞艰苦奋斗看对方国家的咖啡馆的咖啡馆就看对方国家奉公克己都是分开过对方空间广阔第三方机构对方空间广阔的风景广阔的风景光看对方国家看风景光看对方国家对方空间广阔的风景光发的环境都是个地方见过很多了蒂固',
-          lecturer: '12345678910',
-          attribute: '公开课',
-          createTime: new Date().toLocaleString(),
-          courseware: 'dfdsd.pdf',
-          courseTime: 200
-        });
-      }
-      state.data = data;
-      state.total = data.length;
+      initTable().then((res) => {
+        resetData(res)
+      })
+      // for (let i = 0; i < 100; i++) {
+      //   data.push({
+      //     id: i,
+      //     cover: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
+      //     courseName: `${i}`,
+      //     describe: '的复古风根深是否就会收到尽快发货速度高的数据客观dfjaskdhf就开始东莞艰苦奋斗看对方国家的咖啡馆的咖啡馆就看对方国家奉公克己都是分开过对方空间广阔第三方机构对方空间广阔的风景广阔的风景光看对方国家看风景光看对方国家对方空间广阔的风景光发的环境都是个地方见过很多了蒂固',
+      //     lecturer: '12345678910',
+      //     attribute: '公开课',
+      //     createTime: new Date().toLocaleString(),
+      //     courseware: 'dfdsd.pdf',
+      //     courseTime: 200
+      //   });
+      // }
+      // state.data = data;
+      // state.total = data.length;
     };
+    // 更新表格数据
+    const resetData = (res: any) => {
+      const arr: Array<Course> = [];
+      res.data.forEach((val: any) => {
+        arr.push({
+          id: val.id,
+          cover: val.img,
+          courseName: val.courseName,
+          describe: val.introduction,
+          lecturer: val.teacher,
+          attribute: val.attribute,
+          createTime: val.createTime,
+          courseware: val.courseware,
+          courseTime: val.courseTime
+        })
+      })
+      state.data = arr;
+      state.total = arr.length;
+    }
+
     // 添加
     const onAdd = () => {
       addCourseRef.value.openDialog()
@@ -176,17 +180,28 @@ export default defineComponent({
         confirmButtonText: '删除',
         cancelButtonText: '取消',
         type: 'warning',
-        callback: () => {
+      }).then(() => { //对应confirm
+        deleteCourse({
+          ids: arr
+        }).then((res: any) => {
+          if (res.code == 200) {
+            ElMessage.success('成功删除所选课程');
+            initTableData()
+          } else ElMessage.error('删除失败:', res.msg)
+        })
+      }).catch(() => {
 
-        }
-      }).then(() => {
-
-        ElMessage.success('删除成功');
       })
     }
     // 点击目录按钮
     const onOpenCatalogue = (row: Course) => {
-      console.log('调用成功');
+      router.push({
+        path: '/course/catalog',
+        query: {
+          courseId: row.id,
+          courseName: row.courseName
+        }
+      })
     }
     const onOpenCourseware = (row: Course) => {
       coursewareRef.value.openDialog(row)
@@ -199,8 +214,17 @@ export default defineComponent({
         confirmButtonText: '删除',
         cancelButtonText: '取消',
         type: 'warning',
-      }).then(()=>{ // 对应confirm
-        ElMessage.success('删除成功');
+      }).then(() => { // 对应confirm
+        deleteCourse({
+          ids: [row.id]
+        }).then((res: any) => {
+          if (res.code == 200) {
+            ElMessage.success('成功删除该课程');
+            initTableData()
+          } else ElMessage.error('删除失败')
+        })
+      }).catch(() => {
+
       })
 
     };
@@ -210,11 +234,18 @@ export default defineComponent({
     }
     // 搜索框
     const search = () => {
-      state.loading = true
-      setTimeout(() => {
-        state.loading = false
-      }, 1000)
-      console.log(searchKey.value)
+      state.loading = true // 加载动画开始
+
+      searchInfo({
+        keyword: searchKey.value
+      }).then((res: any) => {
+        if (res.code == 200) {
+          resetData(res)
+        } else {
+          ElMessage.error('抱歉,搜索失败...', res.msg)
+        }
+        state.loading = false // 加载动画结束
+      })
     }
     // 页面加载时
     onMounted(() => {
@@ -236,7 +267,8 @@ export default defineComponent({
       onEdit,
       onDelete,
       onDeleteAll,
-      isDisable
+      initTableData,
+      isDisable,
     };
   },
 });

@@ -12,7 +12,7 @@
             </el-col>
             <el-col class="mb20" :span="18">
               <el-form-item label="课程类型" prop="attribute">
-                <el-select v-model="data.attribute" placeholder="课程类型"  class="w100">
+                <el-select v-model="data.attribute" placeholder="课程类型" class="w100">
                   <el-option label="公开课" value="公开课"></el-option>
                   <el-option label="内部课" value="内部课"></el-option>
                   <el-option label="定制课" value="定制课"></el-option>
@@ -21,17 +21,14 @@
             </el-col>
           </el-col>
           <el-col :span="12">
-            <el-form-item prop="cover" >
+            <el-form-item prop="cover">
               <el-upload
                   class="avatar-uploader"
                   :action="VITE_UPLOAD_IMG"
                   :show-file-list="false"
                   :before-upload="beforeCoverUpload"
                   :on-success="handleAvatarSuccess"
-                  :limit="1"
                   accept="image/jpeg,image/png"
-                  :with-credentials="true"
-                  :on-exceed="handleExceed"
               >
                 <img v-if="data.cover" :src="data.cover" class="avatar" style="object-fit: contain;height: 150px"/>
                 <el-icon v-else class="avatar-uploader-icon">
@@ -53,7 +50,7 @@
           </el-col>
           <el-col class="mb20" :span="17">
             <el-form-item label="课时" prop="courseTime">
-              <el-input-number v-model="data.courseTime" :min="0" :max="999"  />
+              <el-input-number v-model="data.courseTime" :min="0" :max="999"/>
             </el-form-item>
           </el-col>
           <el-col class="mb20" :span="18">
@@ -79,37 +76,37 @@ import {reactive, toRefs, defineComponent, ref} from 'vue';
 import type {UploadProps, FormRules, FormInstance} from 'element-plus'
 import {ElMessage} from 'element-plus'
 import {Course, CourseDialog} from "/@/views/course/interface";
-import router from "/@/router";
+import {editCourse} from "/@/api/course";
 
 export default defineComponent({
   name: 'editCourse',
-  setup: function () {
+  setup: function (_, {emit}) {
     const formRef = ref<FormInstance>()
-    const VITE_UPLOAD_IMG=import.meta.env.VITE_UPLOAD_IMG
+    const VITE_UPLOAD_IMG = import.meta.env.VITE_UPLOAD_IMG
     const state = reactive<CourseDialog>({
       isShowDialog: false,
       data: {
-        id:-1,
+        id: -1,
         courseName: '',
         describe: '',
         lecturer: '',
         attribute: '',
         createTime: '',
-        cover:'',
-        courseware:''
-        ,courseTime:0
+        cover: '',
+        courseware: ''
+        , courseTime: 0
       },
     });
     // 打开弹窗
-    const openDialog = (data:Course) => {
+    const openDialog = (data: Course) => {
       state.isShowDialog = true;
-      state.data.id=data.id;
-      state.data.courseName=data.courseName
-      state.data.describe=data.describe
-      state.data.lecturer=data.lecturer
-      state.data.attribute=data.attribute
-      state.data.cover=data.cover
-      state.data.courseTime=data.courseTime
+      state.data.id = data.id;
+      state.data.courseName = data.courseName
+      state.data.describe = data.describe
+      state.data.lecturer = data.lecturer
+      state.data.attribute = data.attribute
+      state.data.cover = data.cover
+      state.data.courseTime = data.courseTime
     };
     // 关闭弹窗
     const closeDialog = () => {
@@ -126,19 +123,28 @@ export default defineComponent({
       await formEl.validate((valid, fields) => {
         if (valid) {
           // 对表单进行提交
-
-          ElMessage.success('修改成功')
-          closeDialog();
+          editCourse({
+            id: state.data.id
+            , courseName: state.data.courseName
+            , introduction: state.data.describe
+            , attribute: state.data.attribute
+            , teacher: state.data.lecturer
+            , courseTime: state.data.courseTime
+            , img: state.data.cover
+          }).then((res:any) => {
+            if (res.code == 200) {
+              ElMessage.success('修改成功')
+              emit('tableChange')
+              closeDialog();
+            } else {
+              ElMessage.error('修改失败！')
+            }
+          })
         } else {
           ElMessage.error('必须填写信息')
           console.log(fields);
         }
       })
-    }
-    const handleExceed: UploadProps['onExceed'] = () => {
-      ElMessage.warning(
-          `抱歉，只能选择一个文件上传`
-      )
     }
     //上传封面验证
     const beforeCoverUpload: UploadProps['beforeUpload'] = (rawFile) => {
@@ -155,13 +161,15 @@ export default defineComponent({
     // 封面上传成功
     const handleAvatarSuccess: UploadProps['onSuccess'] = (
         response,
-        uploadFile
     ) => {
-      state.data.cover = URL.createObjectURL(uploadFile.raw!)
-      ElMessage.success('上传成功')
-
-      // 移除验证规则中的封面验证
-      rules.cover = [{required: false, message: ''}]
+      if (response.code == 200) {
+        state.data.cover = response.data
+        ElMessage.success('上传图片成功')
+        // 移除验证规则中的封面验证
+        rules.cover = [{required: false, message: ''}]
+      }else{
+        ElMessage.error('上传图片失败')
+      }
     }
 
 
@@ -192,13 +200,13 @@ export default defineComponent({
       onSubmit,
       beforeCoverUpload,
       handleAvatarSuccess,
-      handleExceed,
       VITE_UPLOAD_IMG,
       ...toRefs(state),
       rules,
       formRef
     };
   },
+  emits: ['tableChange']
 });
 </script>
 

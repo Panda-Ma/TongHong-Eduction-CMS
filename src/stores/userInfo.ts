@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import {UserInfosStates} from './interface';
-import {Session} from '/@/utils/storage';
+import {Local} from '/@/utils/storage';
 
 /**
  * 用户信息
@@ -22,7 +22,7 @@ export const useUserInfo = defineStore('userInfo', {
     }),
     actions: {
         async setUserInfos() {
-            this.userInfos = Session.get('userInfo');
+            this.userInfos = Local.get('userInfos');
         },
     },
 });

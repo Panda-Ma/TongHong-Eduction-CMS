@@ -3,16 +3,16 @@
       v-model="isShowDialog"
       title="上传资料"
       width="769px"
+      @closed="resetData"
   >
     <el-col>
-      <el-input v-model="courseware" placeholder="Please input" disabled>
+      <el-input v-model="courseware" placeholder="还未上传资料" disabled>
         <template #prepend>已上传资料</template>
       </el-input>
     </el-col>
-    <el-button @click="test">test</el-button>
     <template #footer>
-      <el-upload :limit="1" :action="VITE_UPLOAD_WARE" :auto-upload="false" :with-credentials="true"
-                 :on-exceed="handleExceed" ref="uploadRef" :data="{id:id}" :on-success="handleSuccess">
+      <el-upload :limit="1" :action="VITE_UPLOAD_WARE" :auto-upload="false"
+                 :on-exceed="handleExceed" ref="uploadRef" :data="{id:id}" :on-success="handlerSuccess">
         <template #trigger>
           <el-button type="primary">选择文件</el-button>
         </template>
@@ -29,13 +29,13 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, getCurrentInstance, reactive, ref, toRefs} from "vue";
+import {defineComponent, reactive, ref, toRefs} from "vue";
 import {Course} from "/@/views/course/interface";
 import {ElMessage, genFileId, UploadInstance, UploadProps, UploadRawFile} from "element-plus";
 
 export default defineComponent({
   name: "courseWare",
-  setup: function () {
+  setup: function (_,{emit}) {
     const VITE_UPLOAD_WARE = import.meta.env.VITE_UPLOAD_WARE
     const state = reactive({
       isShowDialog: false,
@@ -49,6 +49,9 @@ export default defineComponent({
     };
     const closeDialog = () => {
       state.isShowDialog = false
+    }
+    const resetData=()=>{
+      uploadRef.value!.clearFiles()
     }
     const onCancel = () => {
       closeDialog()
@@ -67,17 +70,13 @@ export default defineComponent({
 
     const handlerSuccess: UploadProps['onSuccess'] = (
         response,
-        uploadFile
     ) => {
-      console.log(response);
       if (response.code == 200) {
         ElMessage.success('上传资料成功')
+        emit('tableChange')
+        closeDialog()
       } else
-        ElMessage.error('上传资料失败')
-    }
-    const test=()=>{
-      const parent=getCurrentInstance()?.parent
-      // parent?.data.
+        ElMessage.error('上传资料失败:',response.msg)
     }
     return {
       ...toRefs(state),
@@ -88,9 +87,10 @@ export default defineComponent({
       handlerSuccess,
       VITE_UPLOAD_WARE,
       uploadRef,
-      test
+      resetData
     }
-  }
+  },
+  emits:['tableChange']
 })
 </script>
 

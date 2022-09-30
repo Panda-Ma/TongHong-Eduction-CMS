@@ -1,6 +1,6 @@
 <template>
   <div class="add-course-container">
-    <el-dialog title="添加新课程" v-model="isShowDialog" width="769px">
+    <el-dialog title="添加新课程" v-model="isShowDialog" width="769px" @closed="resetData">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
         <el-row>
@@ -28,10 +28,7 @@
                   :show-file-list="false"
                   :before-upload="beforeCoverUpload"
                   :on-success="handleAvatarSuccess"
-                  :limit="1"
                   accept="image/jpeg,image/png"
-                  :with-credentials="true"
-                  :on-exceed="handleExceed"
               >
                 <img v-if="data.cover" :src="data.cover" class="avatar" style="object-fit: contain;height: 150px"/>
                 <el-icon v-else class="avatar-uploader-icon">
@@ -53,7 +50,7 @@
           </el-col>
           <el-col class="mb20" :span="17">
             <el-form-item label="课时" prop="courseTime">
-              <el-input-number v-model="data.courseTime" :min="0" :max="999"  />
+              <el-input-number v-model="data.courseTime" :min="0" :max="999"/>
             </el-form-item>
           </el-col>
           <el-col class="mb20" :span="18">
@@ -83,9 +80,10 @@ import {addCourse} from "/@/api/course";
 
 export default defineComponent({
   name: 'addCourse',
-  setup: function () {
+  setup: function (_, {emit}) {
     const formRef = ref<FormInstance>()
     const VITE_UPLOAD_IMG = import.meta.env.VITE_UPLOAD_IMG
+
     const state = reactive<CourseDialog>({
       isShowDialog: false,
       data: {
@@ -97,7 +95,7 @@ export default defineComponent({
         createTime: '',
         cover: '',
         courseware: '',
-        courseTime:0
+        courseTime: 0
       },
     });
     // 打开弹窗
@@ -108,6 +106,17 @@ export default defineComponent({
     const closeDialog = () => {
       state.isShowDialog = false;
     };
+    const resetData=()=>{
+      state.data.id=-1;
+      state.data.courseName='';
+      state.data.describe='';
+      state.data.lecturer='';
+      state.data.attribute='';
+      state.data.createTime='';
+      state.data.cover='';
+      state.data.courseware='';
+      state.data.courseTime=0;
+    }
     // 取消
     const onCancel = () => {
       closeDialog();
@@ -115,22 +124,32 @@ export default defineComponent({
 
     // 提交前的表单验证
     const onSubmit = async (formEl: FormInstance | undefined) => {
-      if (!formEl) return
-      await formEl.validate((valid, fields) => {
+      if (!formEl) {
+        return
+      }
+      await formEl.validate((valid) => {
         if (valid) {
-
-          ElMessage.success('添加成功')
-          closeDialog();
+          // 对表单进行提交
+          addCourse({
+            courseName: state.data.courseName
+            , introduction: state.data.describe
+            , attribute: state.data.attribute
+            , teacher: state.data.lecturer
+            , courseTime: state.data.courseTime
+            , img: state.data.cover
+          }).then((res:any) => {
+            if(res.code==200){
+              ElMessage.success('添加成功')
+              emit('tableChange')
+              closeDialog();
+            }else{
+              ElMessage.error('添加失败:',res.msg)
+            }
+          })
         } else {
           ElMessage.error('必须填写信息')
-          console.log(fields);
         }
       })
-    }
-    const handleExceed: UploadProps['onExceed'] = () => {
-      ElMessage.warning(
-          `抱歉，只能选择一个文件上传`
-      )
     }
     //上传封面验证
     const beforeCoverUpload: UploadProps['beforeUpload'] = (rawFile) => {
@@ -147,14 +166,15 @@ export default defineComponent({
     // 封面上传成功
     const handleAvatarSuccess: UploadProps['onSuccess'] = (
         response,
-        uploadFile
     ) => {
-      console.log(response);
-      state.data.cover = URL.createObjectURL(uploadFile.raw!)
-      ElMessage.success('上传成功')
-      // 移除验证规则中的封面验证
-      rules.cover = [{required: false, message: ''}]
-      // 这里需要保存响应结果中的id
+      if (response.code == 200) {
+        state.data.cover = response.data
+        ElMessage.success('上传图片成功')
+        // 移除验证规则中的封面验证
+        rules.cover = [{required: false, message: ''}]
+      }else{
+        ElMessage.error('上传图片失败:',response.msg)
+      }
     }
 
 
@@ -185,13 +205,14 @@ export default defineComponent({
       onSubmit,
       beforeCoverUpload,
       handleAvatarSuccess,
-      handleExceed,
+      resetData,
       VITE_UPLOAD_IMG,
       ...toRefs(state),
       rules,
       formRef
     };
   },
+  emits: ['tableChange']
 });
 </script>
 

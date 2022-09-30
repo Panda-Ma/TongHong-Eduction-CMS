@@ -1,12 +1,13 @@
 import axios from 'axios';
 import {ElMessage} from 'element-plus';
 import {Session} from '/@/utils/storage';
-
+import Cookies from 'js-cookie'
 // 配置新建一个 axios 实例
 const service = axios.create({
     baseURL: import.meta.env.VITE_API_URL as any,
     timeout: 50000,
     headers: {'Content-Type': 'application/json'},
+    // withCredentials:true
 });
 
 // 添加响应拦截器
@@ -14,8 +15,9 @@ service.interceptors.response.use(
     (response) => {
         // 对响应数据做点什么
         const res = response.data;
-        if ( res.data.code === 400) {
+        if ( res.code === 400) {
             Session.clear(); // 清除浏览器全部临时缓存
+            Cookies.remove('token')
             window.location.href = '/'; // 去登录页
             ElMessage.error('你已被登出，请重新登录')
             return Promise.reject(service.interceptors.response);
