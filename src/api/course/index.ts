@@ -1,6 +1,6 @@
 import request from '/@/utils/request'
 
-export function initTable(){
+export function initCourseTable(){
     return request({
         url:'/course/getall',
         method:'get'
@@ -33,7 +33,7 @@ export function deleteCourse(obj:object){
 }
 
 // 获取匹配搜索关键字的Table数据
-export function searchInfo(obj:object) {
+export function searchCourseInfo(obj:object) {
     return request({
         url: '/course/search',
         method:'get',

@@ -162,10 +162,16 @@ export default defineComponent({
     // 搜索框
     const search= () => {
       state.loading=true
-      setTimeout(()=>{
-        state.loading=false
-      },1000)
-      console.log(searchKey.value)
+      searchTeacherInfo({
+        keyword: searchKey.value
+      }).then((res: any) => {
+        if (res.code == 200) {
+          resetData(res)
+        } else {
+          ElMessage.error('抱歉,搜索失败...', res.msg)
+        }
+        state.loading = false // 加载动画结束
+      })
     }
 
     // 页面加载时

@@ -91,6 +91,23 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 					roles: ['admin','common'],
 					icon: 'fa fa-address-book',
 				},
+				children:[
+					{
+						path: '/class/plan',
+						name: 'plan',
+						component: () => import('/@/views/class/component/plan.vue'),
+						meta: {
+							title: '班级计划',
+							isLink: '',
+							isHide: true,
+							isKeepAlive: true,
+							isAffix: false,
+							isIframe: false,
+							roles: ['admin','common'],
+							icon: 'ele-Timer',
+						},
+					},
+				]
 			},
 			{
 				path: '/course',

@@ -37,8 +37,10 @@
           <el-table-column prop="className" label="班级名称" show-overflow-tooltip align="center" width="150px"></el-table-column>
           <el-table-column prop="describe" label="简介" align="center"></el-table-column>
         </el-table-column>
-        <el-table-column prop="classMaster" label="班主任" show-overflow-tooltip align="center"
+        <el-table-column prop="headTeacherName" label="班主任" show-overflow-tooltip align="center"
                          width="120"></el-table-column>
+        <el-table-column prop="studentNum" label="班级人数" show-overflow-tooltip align="center"
+                         width="100"></el-table-column>
         <el-table-column prop="createTime" label="创建时间" align="center" width="100"></el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
@@ -69,16 +71,22 @@
       >
       </el-pagination>
     </el-card>
-    <AddCourse ref="addCourseRef"></AddCourse>
+    <AddClass ref="addClassRef" @tableChange="initTableData"></AddClass>
+    <EditClass ref="editClassRef" @tableChange="initTableData"></EditClass>
+    <select-course ref="selectCourseRef"></select-course>
   </div>
 </template>
 
 <script lang="ts">
 import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
-import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {Class} from "/@/views/class/interface";
+import AddClass from "/@/views/class/component/addClass.vue";
+import EditClass from "/@/views/class/component/editClass.vue";
+import {deleteClass, initClassTable, searchClassInfo} from "/@/api/class";
+import {useRouter} from "vue-router";
+import SelectCourse from "/@/views/class/component/selectCourse.vue";
 
 // 页面数据：表格数据、分页数据
 interface TableState {
@@ -91,12 +99,15 @@ interface TableState {
 
 export default defineComponent({
   name: 'class',
-  components: {AddCourse, SvgIcon},
+  components: {SelectCourse, AddClass, SvgIcon,EditClass},
   setup() {
-    const addCourseRef = ref()
+    const addClassRef = ref()
+    const editClassRef = ref()
+    const selectCourseRef=ref()
     const tableRef = ref()
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
+    const router=useRouter()
 
     const state = reactive<TableState>({
         data: [],
@@ -110,25 +121,31 @@ export default defineComponent({
     })
     // 初始化表格数据
     const initTableData = () => {
-      const data: Array<Class> = [];
-      for (let i = 0; i < 300; i++) {
-        data.push({
-          id: 1,
-          cover: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
-          // cover: 'https://all.haoapk.cn/s2/image/ih9t7eondr1gmkvfs4w2zx68yujp5bq3.png',
-          className: `${i}`,
-          describe: '的复古风根深是否就会收到尽快发货速度高的数据客观dfjaskdhf就开始东莞艰苦奋斗看对方国家的咖啡馆的咖啡馆就看对方国家奉公克己都是分开过对方空间广阔第三方机构对方空间广阔的风景广阔的风景光看对方国家看风景光看对方国家对方空间广阔的风景光发的环境都是个地方见过很多了蒂固',
-          classMaster: '12345678910',
-          createTime: new Date().toLocaleString(),
-          num:40
-        });
-      }
-      state.data = data;
-      state.total = data.length;
+      initClassTable().then((res) => {
+        resetData(res)
+      })
     };
+    // 更新表格数据
+    const resetData = (res: any) => {
+      const arr: Array<Class> = [];
+      res.data.forEach((val: any) => {
+        arr.push({
+          id: val.id,
+          cover: val.img,
+          className:val.className,
+          describe: val.introduction,
+          headTeacherId:String(val.headTeacherId),
+          headTeacherName:val.headTeacherName,
+          studentNum:val.studentNum,
+          createTime: val.createTime,
+        })
+      })
+      state.data = arr;
+      state.total = arr.length;
+    }
     // 添加
     const onAdd = () => {
-      addCourseRef.value.openDialog()
+      addClassRef.value.openDialog()
     }
     const onDeleteAll = () => {
       let arr = tableRef.value.getSelectionRows().map((ele: any) => ele.id)
@@ -138,7 +155,14 @@ export default defineComponent({
         type: 'warning',
       })
           .then(() => {
-            ElMessage.success('删除成功');
+            deleteClass({
+              ids: arr
+            }).then((res: any) => {
+              if (res.code == 200) {
+                ElMessage.success('成功删除所选班级');
+                initTableData()
+              } else ElMessage.error('删除失败')
+            })
           })
           .catch(() => {
           });
@@ -150,7 +174,14 @@ export default defineComponent({
         type: 'warning',
       })
           .then(() => {
-            ElMessage.success('删除成功');
+            deleteClass({
+              ids: [row.id]
+            }).then((res: any) => {
+              if (res.code == 200) {
+                ElMessage.success('成功删除该班级');
+                initTableData()
+              } else ElMessage.error('删除失败')
+            })
           })
           .catch(() => {
           });
@@ -162,14 +193,35 @@ export default defineComponent({
     // 搜索框
     const search= () => {
       state.loading=true
-      setTimeout(()=>{
-        state.loading=false
-      },1000)
-      console.log(searchKey.value)
+      console.log(searchKey.value);
+      searchClassInfo({
+        keyword: searchKey.value
+      }).then((res: any) => {
+        if (res.code == 200) {
+          resetData(res)
+        } else {
+          ElMessage.error('抱歉,搜索失败...', res.msg)
+        }
+        state.loading = false // 加载动画结束
+      })
     }
-    // 点击目录按钮
-    const onOpenCatalogue = (row: Class) => {
-      console.log(row.id);
+    const onOpenCourse=(row:Class)=>{
+      selectCourseRef.value.openDialog(row.id)
+    }
+
+    // 点击计划按钮
+    const onOpenPlan = (row: Class) => {
+      router.push({
+        path: '/class/plan',
+        query: {
+          classId: row.id,
+          className: row.className
+        }
+      })
+    }
+
+    const onEdit = (row: Class) => {
+      editClassRef.value.openDialog(row)
     }
     // 页面加载时
     onMounted(() => {
@@ -178,15 +230,21 @@ export default defineComponent({
     return {
       ...toRefs(state),
       tableRef,
-      addCourseRef,
+      addClassRef,
+      editClassRef,
       searchKey,
       currentData,
       search,
       selectionChange,
+      initTableData,
       onAdd,
       onDelete,
       onDeleteAll,
-      isDisable
+      isDisable,
+      onEdit,
+      onOpenPlan,
+      onOpenCourse,
+      selectCourseRef
     };
   },
 });

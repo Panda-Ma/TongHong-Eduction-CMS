@@ -1,5 +1,5 @@
 <template>
-  <div class="add-course-container">
+  <div class="edit-course-container">
     <el-dialog title="修改" v-model="isShowDialog" width="769px">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
@@ -165,8 +165,6 @@ export default defineComponent({
       if (response.code == 200) {
         state.data.cover = response.data
         ElMessage.success('上传图片成功')
-        // 移除验证规则中的封面验证
-        rules.cover = [{required: false, message: ''}]
       }else{
         ElMessage.error('上传图片失败')
       }
@@ -187,9 +185,6 @@ export default defineComponent({
       describe: [
         {required: true, message: '输入课程描述', trigger: 'blur'}
       ],
-      cover: [
-        {required: true, message: 'Sorry,请上传课程封面', trigger: 'blur'}
-      ]
     })
 
 

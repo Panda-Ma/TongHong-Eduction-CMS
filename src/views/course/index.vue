@@ -94,7 +94,7 @@ import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import EditCourse from "/@/views/course/component/editCourse.vue";
 import {Course} from "/@/views/course/interface";
-import {deleteCourse, initTable, searchInfo} from "/@/api/course";
+import {deleteCourse, initCourseTable, searchCourseInfo, searchInfo} from "/@/api/course";
 import Courseware from "/@/views/course/component/courseware.vue";
 import {useRouter} from "vue-router";
 
@@ -131,24 +131,9 @@ export default defineComponent({
     })
     // 初始化表格数据
     const initTableData = () => {
-      initTable().then((res) => {
+      initCourseTable().then((res) => {
         resetData(res)
       })
-      // for (let i = 0; i < 100; i++) {
-      //   data.push({
-      //     id: i,
-      //     cover: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
-      //     courseName: `${i}`,
-      //     describe: '的复古风根深是否就会收到尽快发货速度高的数据客观dfjaskdhf就开始东莞艰苦奋斗看对方国家的咖啡馆的咖啡馆就看对方国家奉公克己都是分开过对方空间广阔第三方机构对方空间广阔的风景广阔的风景光看对方国家看风景光看对方国家对方空间广阔的风景光发的环境都是个地方见过很多了蒂固',
-      //     lecturer: '12345678910',
-      //     attribute: '公开课',
-      //     createTime: new Date().toLocaleString(),
-      //     courseware: 'dfdsd.pdf',
-      //     courseTime: 200
-      //   });
-      // }
-      // state.data = data;
-      // state.total = data.length;
     };
     // 更新表格数据
     const resetData = (res: any) => {
@@ -236,7 +221,7 @@ export default defineComponent({
     const search = () => {
       state.loading = true // 加载动画开始
 
-      searchInfo({
+      searchCourseInfo({
         keyword: searchKey.value
       }).then((res: any) => {
         if (res.code == 200) {

@@ -1,21 +1,19 @@
 <template>
   <div class="add-course-container">
-    <el-dialog title="添加新课程" v-model="isShowDialog" width="769px" @close="resetData">
+    <el-dialog title="添加班级" v-model="isShowDialog" width="769px" @close="resetData" @open="getAllTeachers">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
         <el-row>
           <el-col :span="12">
             <el-col class="mb20" :span="18">
-              <el-form-item label="课程名称" prop="courseName">
-                <el-input v-model="data.courseName" placeholder="请输入课程名称" clearable></el-input>
+              <el-form-item label="班级名称" prop="className">
+                <el-input v-model="data.className" placeholder="请输入班级名称" clearable></el-input>
               </el-form-item>
             </el-col>
             <el-col class="mb20" :span="18">
-              <el-form-item label="课程类型" prop="attribute">
-                <el-select v-model="data.attribute" placeholder="课程类型" class="w100">
-                  <el-option label="公开课" value="公开课"></el-option>
-                  <el-option label="内部课" value="内部课"></el-option>
-                  <el-option label="定制课" value="定制课"></el-option>
+              <el-form-item label="班主任" prop="headTeacherId">
+                <el-select v-model="data.headTeacherId" placeholder="请选择" class="w100">
+                  <el-option v-for="item in teachers" :label="item.name" :value="item.id" :key="item.id"></el-option>
                 </el-select>
               </el-form-item>
             </el-col>
@@ -44,18 +42,8 @@
               </el-upload>
             </el-form-item>
           </el-col>
-          <el-col class="mb20" :span="9">
-            <el-form-item label="授课老师" prop="lecturer">
-              <el-input v-model="data.lecturer" placeholder="请输入授课老师名称" clearable></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col class="mb20" :span="17">
-            <el-form-item label="课时" prop="courseTime">
-              <el-input-number v-model="data.courseTime" :min="0" :max="999"/>
-            </el-form-item>
-          </el-col>
           <el-col class="mb20" :span="18">
-            <el-form-item label="课程简介" prop="describe">
+            <el-form-item label="班级简介" prop="describe">
               <el-input v-model="data.describe" placeholder="请输入课程描述..." clearable type="textarea" rows="4"
                         resize="none"></el-input>
             </el-form-item>
@@ -74,32 +62,33 @@
 
 <script lang="ts">
 import {reactive, toRefs, defineComponent, ref} from 'vue';
-import type {UploadProps, FormRules, FormInstance, UploadInstance} from 'element-plus'
-import {ElMessage} from 'element-plus'
-import {CourseDialog} from "/@/views/course/interface";
-import {addCourse} from "/@/api/course";
+import type {UploadProps, FormRules, FormInstance} from 'element-plus'
+import {ElMessage, UploadInstance} from 'element-plus'
+import { ClassDialog} from "/@/views/class/interface";
+import {addClass} from "/@/api/class";
+import {initTeacherTable} from "/@/api/teacher";
 
 export default defineComponent({
-  name: 'addCourse',
+  name: 'addClass',
   setup: function (_, {emit}) {
     const formRef = ref<FormInstance>()
     const uploadRef=ref<UploadInstance>()
     const VITE_UPLOAD_IMG = import.meta.env.VITE_UPLOAD_IMG
-
-    const state = reactive<CourseDialog>({
+    const state = reactive<ClassDialog>({
       isShowDialog: false,
       data: {
         id: -1,
-        courseName: '',
-        describe: '',
-        lecturer: '',
-        attribute: '',
-        createTime: '',
         cover: '',
-        courseware: '',
-        courseTime: 0
+        className: '',
+        describe: '',
+        headTeacherId: '',
+        headTeacherName: '',
+        studentNum: 0,
+        createTime: '',
       },
+      teachers: []
     });
+
     // 打开弹窗
     const openDialog = () => {
       state.isShowDialog = true;
@@ -108,17 +97,27 @@ export default defineComponent({
     const closeDialog = () => {
       state.isShowDialog = false;
     };
-    const resetData=()=>{
-      state.data.id=-1;
-      state.data.courseName='';
-      state.data.describe='';
-      state.data.lecturer='';
-      state.data.attribute='';
-      state.data.createTime='';
-      state.data.cover='';
-      state.data.courseware='';
-      state.data.courseTime=0;
+    const resetData = () => {
+      // 重置表单数据
+      state.data.className = ''
+      state.data.cover = '';
+      state.data.describe = '';
+      state.data.headTeacherId = '';
+      state.teachers=[]
+      // 重置上传
       uploadRef.value!.clearFiles()
+    }
+    const getAllTeachers = () => {
+      initTeacherTable().then((res) => {
+        const arr:any[] = [];
+        res.data.forEach((val: any) => {
+          arr.push({
+            id: val.id,
+            name:val.name,
+          })
+        })
+        state.teachers=arr
+      })
     }
     // 取消
     const onCancel = () => {
@@ -133,20 +132,18 @@ export default defineComponent({
       await formEl.validate((valid) => {
         if (valid) {
           // 对表单进行提交
-          addCourse({
-            courseName: state.data.courseName
-            , introduction: state.data.describe
-            , attribute: state.data.attribute
-            , teacher: state.data.lecturer
-            , courseTime: state.data.courseTime
+          addClass({
+            className: state.data.className
             , img: state.data.cover
-          }).then((res:any) => {
-            if(res.code==200){
+            , introduction: state.data.describe
+            , headTeacherId: Number(state.data.headTeacherId)
+          }).then((res: any) => {
+            if (res.code == 200) {
               ElMessage.success('添加成功')
               emit('tableChange')
               closeDialog();
-            }else{
-              ElMessage.error('添加失败:',res.msg)
+            } else {
+              ElMessage.error('添加失败:', res.msg)
             }
           })
         } else {
@@ -173,25 +170,22 @@ export default defineComponent({
       if (response.code == 200) {
         state.data.cover = response.data
         ElMessage.success('上传图片成功')
-      }else{
-        ElMessage.error('上传图片失败:',response.msg)
+      } else {
+        ElMessage.error('上传图片失败:', response.msg)
       }
     }
 
 
     //表单验证规则
     const rules = reactive<FormRules>({
-      courseName: [
+      className: [
         {required: true, message: '输入课程名称', trigger: 'blur'}
       ],
-      attribute: [
-        {required: true, message: '请选择课程类型', trigger: 'change'}
-      ],
-      lecturer: [
-        {required: true, message: '请输入授课老师名称', trigger: 'blur'}
+      headTeacherId: [
+        {required: true, message: '请选择班主任', trigger: 'change'}
       ],
       describe: [
-        {required: true, message: '输入课程描述', trigger: 'blur'}
+        {required: true, message: '请输入班级描述', trigger: 'blur'}
       ],
     })
 
@@ -204,6 +198,7 @@ export default defineComponent({
       beforeCoverUpload,
       handleAvatarSuccess,
       resetData,
+      getAllTeachers,
       VITE_UPLOAD_IMG,
       ...toRefs(state),
       rules,

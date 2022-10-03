@@ -110,7 +110,7 @@ export default defineComponent({
         , cancelButtonText: '取消'
       }).then(() => {
         deleteCatalog({
-          chapterIds:[data.id]
+          ids:[data.id]
         }).then((res: any) => {
           if (res.code == 200) {
             ElMessage.success('成功删除该章节')

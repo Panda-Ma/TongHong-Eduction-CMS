@@ -37,6 +37,7 @@ export default defineComponent({
   name: "courseWare",
   setup: function (_,{emit}) {
     const VITE_UPLOAD_WARE = import.meta.env.VITE_UPLOAD_WARE
+    const uploadRef = ref<UploadInstance>()
     const state = reactive({
       isShowDialog: false,
       courseware: '', // 课件名
@@ -59,7 +60,6 @@ export default defineComponent({
     const submitUpload = () => {
       uploadRef.value!.submit()
     }
-    const uploadRef = ref<UploadInstance>()
     // 当文件上传数量超过指定的数目时，覆盖前一次文件
     const handleExceed: UploadProps['onExceed'] = (files) => {
       uploadRef.value!.clearFiles()

@@ -14,6 +14,13 @@
           </el-icon>
           批量删除
         </el-button>
+        <el-button size="default" type="primary" class="ml10" @click="onDeleteAll" :disabled="isDisable">
+          <el-icon>
+            <ele-Link/>
+          </el-icon>
+          关联班级
+        </el-button>
+
         <el-input v-model="searchKey" placeholder="搜索..." clearable class="w-50 m-2" size="default"
                   style="max-width: 300px;position: absolute;right: 30px">
           <template #append>
@@ -62,17 +69,18 @@
       >
       </el-pagination>
     </el-card>
-    <AddCourse ref="addCourseRef"></AddCourse>
+    <AddStudent ref="addStudentRef" @tableChange="initTableData"></AddStudent>
+    <EditStudent ref="editStudentRef" @tableChange="initTableData"></EditStudent>
   </div>
 </template>
 
 <script lang="ts">
 import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
-import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {Student} from "/@/views/student/interface";
-
+import AddStudent from "/@/views/student/component/addStudent.vue";
+import EditStudent from "/@/views/student/component/editStudent.vue";
 
 // 页面数据：表格数据、分页数据
 interface TableState {
@@ -85,9 +93,10 @@ interface TableState {
 
 export default defineComponent({
   name: 'student',
-  components: {AddCourse, SvgIcon},
+  components: {AddStudent,EditStudent, SvgIcon},
   setup() {
-    const addCourseRef = ref()
+    const addStudentRef=ref()
+    const editStudentRef=ref()
     const tableRef = ref()
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
@@ -156,10 +165,16 @@ export default defineComponent({
     // 搜索框
     const search= () => {
       state.loading=true
-      setTimeout(()=>{
-        state.loading=false
-      },1000)
-      console.log(searchKey.value)
+      searchStudentInfo({
+        keyword: searchKey.value
+      }).then((res: any) => {
+        if (res.code == 200) {
+          resetData(res)
+        } else {
+          ElMessage.error('抱歉,搜索失败...', res.msg)
+        }
+        state.loading = false // 加载动画结束
+      })
     }
 
     // 页面加载时
@@ -169,7 +184,8 @@ export default defineComponent({
     return {
       ...toRefs(state),
       tableRef,
-      addCourseRef,
+      addStudentRef,
+      editStudentRef,
       searchKey,
       currentData,
       search,
