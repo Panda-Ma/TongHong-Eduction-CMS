@@ -4,7 +4,8 @@ export interface Course {
     cover: string;  // 封面
     courseName: string; // 课程名字
     describe: string; // 简介
-    lecturer: string; // 讲师
+    teacherId: string; // 讲师id
+    teacherName: string; // 讲师姓名
     attribute: string;  // 课程类型
     createTime: string; // 创建时间
     courseware:string;  // 课件名
@@ -13,5 +14,6 @@ export interface Course {
 
 export interface CourseDialog {
     isShowDialog: boolean;
-    data: Course
+    data: Course,
+    teachers:object
 }

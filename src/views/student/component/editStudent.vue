@@ -43,9 +43,9 @@
         </el-row>
 
         <el-row>
-          <el-col class="mb20" :span="9">
-            <el-form-item label="密码" prop="password">
-              <el-input v-model="data.password" placeholder="请输入密码" clearable></el-input>
+          <el-col class="mb20 ml40" :span="9">
+            <el-form-item label="qq" prop="qq">
+              <el-input v-model="data.qq" placeholder="请输入qq" clearable></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -57,11 +57,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="4"></el-col>
-          <el-col class="mb20 ml40" :span="9">
-            <el-form-item label="qq" prop="qq">
-              <el-input v-model="data.qq" placeholder="请输入qq" clearable></el-input>
-            </el-form-item>
-          </el-col>
+
         </el-row>
 
         <el-row>
@@ -158,7 +154,6 @@ export default defineComponent({
             id:state.data.id
             ,studentName: state.data.studentName
             , username: state.data.userName
-            , password: state.data.password
             , number: state.data.phone
             , tim: state.data.qq
             , img: state.data.cover
@@ -210,10 +205,6 @@ export default defineComponent({
       ],
       userName: [
         {required: true, message: '输入账号', trigger: 'blur'},
-        {max:30,message:'最大长度30个字符',trigger:'blur'}
-      ],
-      password: [
-        {required: true, message: '请输入密码', trigger: 'blur'},
         {max:30,message:'最大长度30个字符',trigger:'blur'}
       ],
       phone:[

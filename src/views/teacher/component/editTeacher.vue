@@ -43,14 +43,6 @@
         </el-row>
 
         <el-row>
-          <el-col class="mb20" :span="9">
-            <el-form-item label="密码" prop="password">
-              <el-input v-model="data.password" placeholder="请输入密码" clearable></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row>
           <el-col class="mb20 ml40" :span="9">
             <el-form-item label="教师级别" prop="level">
               <el-select v-model="data.level" placeholder="选择教师级别" class="w100">
@@ -60,7 +52,9 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="4"></el-col>
+        </el-row>
+
+        <el-row>
           <el-col class="mb20 ml40" :span="9">
             <el-form-item label="手机" prop="phone">
               <el-input v-model="data.phone" placeholder="请输入手机" clearable></el-input>
@@ -163,7 +157,6 @@ export default defineComponent({
             id: state.data.id
             , name: state.data.name
             , username: state.data.userName
-            , password: state.data.password
             , number: state.data.phone
             , level: state.data.level
             , img: state.data.cover
@@ -216,10 +209,6 @@ export default defineComponent({
       ],
       userName: [
         {required: true, message: '输入账号', trigger: 'blur'},
-        {max:30,message:'最大长度30个字符',trigger:'blur'}
-      ],
-      password: [
-        {required: true, message: '请输入密码', trigger: 'blur'},
         {max:30,message:'最大长度30个字符',trigger:'blur'}
       ],
       level: [

@@ -49,7 +49,7 @@
           <el-table-column prop="courseTime" label="课时" align="center" width="60"></el-table-column>
 
         </el-table-column>
-        <el-table-column prop="lecturer" label="授课老师" show-overflow-tooltip align="center"
+        <el-table-column prop="teacherName" label="授课老师" show-overflow-tooltip align="center"
                          width="120"></el-table-column>
         <el-table-column prop="createTime" label="创建时间" align="center" width="100"></el-table-column>
         <el-table-column label="操作" align="center" width="180">
@@ -94,7 +94,7 @@ import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import EditCourse from "/@/views/course/component/editCourse.vue";
 import {Course} from "/@/views/course/interface";
-import {deleteCourse, initCourseTable, searchCourseInfo, searchInfo} from "/@/api/course";
+import {deleteCourse, initCourseTable, searchCourseInfo} from "/@/api/course";
 import Courseware from "/@/views/course/component/courseware.vue";
 import {useRouter} from "vue-router";
 
@@ -144,7 +144,8 @@ export default defineComponent({
           cover: val.img,
           courseName: val.courseName,
           describe: val.introduction,
-          lecturer: val.teacher,
+          teacherId: val.teacherId,
+          teacherName: val.teacherName,
           attribute: val.attribute,
           createTime: val.createTime,
           courseware: val.courseware,

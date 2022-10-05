@@ -1,6 +1,6 @@
 <template>
   <div class="edit-course-container">
-    <el-dialog title="修改" v-model="isShowDialog" width="769px">
+    <el-dialog title="修改" v-model="isShowDialog" width="769px" @open="getAllTeachers">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
         <el-row>
@@ -44,8 +44,10 @@
             </el-form-item>
           </el-col>
           <el-col class="mb20" :span="9">
-            <el-form-item label="授课老师" prop="lecturer">
-              <el-input v-model="data.lecturer" placeholder="请输入授课老师名称" clearable></el-input>
+            <el-form-item label="授课老师" prop="teacherId">
+              <el-select v-model="data.teacherId" placeholder="请选择" class="w100">
+                <el-option v-for="item in teachers" :label="item.name" :value="item.id" :key="item.id"></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col class="mb20" :span="17">
@@ -77,6 +79,7 @@ import type {UploadProps, FormRules, FormInstance} from 'element-plus'
 import {ElMessage} from 'element-plus'
 import {Course, CourseDialog} from "/@/views/course/interface";
 import {editCourse} from "/@/api/course";
+import {initTeacherTable} from "/@/api/teacher";
 
 export default defineComponent({
   name: 'editCourse',
@@ -89,13 +92,15 @@ export default defineComponent({
         id: -1,
         courseName: '',
         describe: '',
-        lecturer: '',
+        teacherId: '',
+        teacherName: '',
         attribute: '',
         createTime: '',
         cover: '',
         courseware: ''
         , courseTime: 0
       },
+      teachers:[]
     });
     // 打开弹窗
     const openDialog = (data: Course) => {
@@ -103,7 +108,8 @@ export default defineComponent({
       state.data.id = data.id;
       state.data.courseName = data.courseName
       state.data.describe = data.describe
-      state.data.lecturer = data.lecturer
+      state.data.teacherId = data.teacherId
+      state.data.teacherName = data.teacherName
       state.data.attribute = data.attribute
       state.data.cover = data.cover
       state.data.courseTime = data.courseTime
@@ -128,7 +134,7 @@ export default defineComponent({
             , courseName: state.data.courseName
             , introduction: state.data.describe
             , attribute: state.data.attribute
-            , teacher: state.data.lecturer
+            , teacherId: Number(state.data.teacherId)
             , courseTime: state.data.courseTime
             , img: state.data.cover
           }).then((res:any) => {
@@ -170,20 +176,32 @@ export default defineComponent({
       }
     }
 
-
+    const getAllTeachers = () => {
+      initTeacherTable().then((res) => {
+        const arr:any[] = [];
+        res.data.forEach((val: any) => {
+          arr.push({
+            id: val.id,
+            name:val.name,
+          })
+        })
+        state.teachers=arr
+      })
+    }
     //表单验证规则
     const rules = reactive<FormRules>({
       courseName: [
-        {required: true, message: '输入课程名称', trigger: 'blur'}
+        {required: true, message: '输入课程名称', trigger: 'blur'},
+        {max:20,message:'最大长度20个字符',trigger:'blur'}
       ],
       attribute: [
         {required: true, message: '请选择课程类型', trigger: 'change'}
       ],
-      lecturer: [
-        {required: true, message: '请输入授课老师名称', trigger: 'blur'}
+      teacherId: [
+        {required: true, message: '请输入授课老师名称', trigger: 'change'}
       ],
       describe: [
-        {required: true, message: '输入课程描述', trigger: 'blur'}
+        {max:50,message:'最大长度50个字符',trigger:'blur'}
       ],
     })
 
@@ -198,7 +216,8 @@ export default defineComponent({
       VITE_UPLOAD_IMG,
       ...toRefs(state),
       rules,
-      formRef
+      formRef,
+      getAllTeachers
     };
   },
   emits: ['tableChange']

@@ -55,3 +55,10 @@ export function bindClass(obj:object){
     })
 }
 
+export function download(){
+    return request({
+        url:'/student/download'
+        ,method:'get'
+    })
+}
+

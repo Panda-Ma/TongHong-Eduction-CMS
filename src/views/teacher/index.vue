@@ -35,7 +35,6 @@
         </el-table-column>
         <el-table-column prop="name" label="姓名" align="center" width="100px"></el-table-column>
         <el-table-column prop="userName" label="账号"  align="center" ></el-table-column>
-        <el-table-column prop="password" label="密码"  align="center" ></el-table-column>
         <el-table-column prop="level" label="级别" align="center" width="105px">
           <template #default="scope">
             <el-tag type="info" v-if="scope.row.level==='初级教师'">初级教师</el-tag>
@@ -43,7 +42,7 @@
             <el-tag v-else>高级教师</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号码"  align="center" width="120px"></el-table-column>
+        <el-table-column prop="phone" label="手机号码"  align="center" ></el-table-column>
         <el-table-column prop="email" label="电子邮箱" show-overflow-tooltip align="center" ></el-table-column>
         <el-table-column label="操作" align="center" width="100px">
           <template #default="scope">
@@ -128,7 +127,7 @@ export default defineComponent({
           cover: val.img,
           name:val.name,
           userName:val.username,
-          password:val.password,
+          password:'',
           level:val.level,
           phone:val.number,
           email:val.email,

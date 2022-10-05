@@ -1,43 +1,49 @@
 <template>
   <div class="layout-navbars-breadcrumb-user pr15" :style="{ flex: layoutUserFlexNum }">
-    <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onComponentSizeChange">
-      <div class="layout-navbars-breadcrumb-user-icon">
-        <i class="iconfont icon-ziti" title="组件大小"></i>
-      </div>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item command="large" :disabled="disabledSize === 'large'">大型</el-dropdown-item>
-          <el-dropdown-item command="default" :disabled="disabledSize === 'default'">默认</el-dropdown-item>
-          <el-dropdown-item command="small" :disabled="disabledSize === 'small'">小型</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
+    <!--    设置字体大小-->
+<!--    <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onComponentSizeChange">-->
+<!--      <div class="layout-navbars-breadcrumb-user-icon">-->
+<!--        <i class="iconfont icon-ziti" title="组件大小"></i>-->
+<!--      </div>-->
+<!--      <template #dropdown>-->
+<!--        <el-dropdown-menu>-->
+<!--          <el-dropdown-item command="large" :disabled="disabledSize === 'large'">大型</el-dropdown-item>-->
+<!--          <el-dropdown-item command="default" :disabled="disabledSize === 'default'">默认</el-dropdown-item>-->
+<!--          <el-dropdown-item command="small" :disabled="disabledSize === 'small'">小型</el-dropdown-item>-->
+<!--        </el-dropdown-menu>-->
+<!--      </template>-->
+<!--    </el-dropdown>-->
+    <!--    菜单搜索-->
     <div class="layout-navbars-breadcrumb-user-icon" @click="onSearchClick">
       <el-icon title="菜单搜索">
         <ele-Search/>
       </el-icon>
     </div>
-    <div class="layout-navbars-breadcrumb-user-icon" @click="onLayoutSetingClick">
-      <i class="icon-skin iconfont" title="布局配置"></i>
-    </div>
-    <div class="layout-navbars-breadcrumb-user-icon">
-      <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
-        <template #reference>
-          <el-badge :is-dot="true">
-            <el-icon title="消息">
-              <ele-Bell/>
-            </el-icon>
-          </el-badge>
-        </template>
-        <template #default>
-          <UserNews/>
-        </template>
-      </el-popover>
-    </div>
+    <!--    布局配置-->
+<!--    <div class="layout-navbars-breadcrumb-user-icon" @click="onLayoutSetingClick">-->
+<!--      <i class="icon-skin iconfont" title="布局配置"></i>-->
+<!--    </div>-->
+    <!--    消息-->
+<!--    <div class="layout-navbars-breadcrumb-user-icon">-->
+<!--      <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">-->
+<!--        <template #reference>-->
+<!--          <el-badge :is-dot="true">-->
+<!--            <el-icon title="消息">-->
+<!--              <ele-Bell/>-->
+<!--            </el-icon>-->
+<!--          </el-badge>-->
+<!--        </template>-->
+<!--        <template #default>-->
+<!--          <UserNews/>-->
+<!--        </template>-->
+<!--      </el-popover>-->
+<!--    </div>-->
+    <!--    全屏-->
     <div class="layout-navbars-breadcrumb-user-icon mr10" @click="onScreenfullClick">
       <i class="iconfont" :title="isScreenfull ? '关全屏' : '开全屏'"
          :class="!isScreenfull ? 'icon-fullscreen' : 'icon-tuichuquanping'"></i>
     </div>
+    <!--    个人头像-->
     <el-dropdown :show-timeout="70" :hide-timeout="50" @command="onHandleCommandClick">
 			<span class="layout-navbars-breadcrumb-user-link">
 				<img :src="userInfos.photo" class="layout-navbars-breadcrumb-user-link-photo mr5"/>
@@ -150,7 +156,7 @@ export default defineComponent({
             })
             .catch(() => {
             });
-      }else {
+      } else {
         router.push(path);
       }
     };

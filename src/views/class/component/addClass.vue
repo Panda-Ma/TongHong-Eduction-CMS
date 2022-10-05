@@ -186,7 +186,6 @@ export default defineComponent({
         {required: true, message: '请选择班主任', trigger: 'change'}
       ],
       describe: [
-        {required: true, message: '请输入班级描述', trigger: 'blur'},
         {max:50,message:'最大长度50个字符',trigger:'blur'}
       ],
     })
