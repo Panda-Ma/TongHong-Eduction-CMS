@@ -1,20 +1,18 @@
 <template>
-  <div class="add-class-container">
-    <el-dialog title="添加班级" v-model="isShowDialog" width="769px" @close="resetData" @open="getAllTeachers">
+  <div class="add-teacher-container">
+    <el-dialog title="添加老师" v-model="isShowDialog" width="769px" @close="resetData">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
         <el-row>
           <el-col :span="12">
             <el-col class="mb20" :span="18">
-              <el-form-item label="班级名称" prop="className">
-                <el-input v-model="data.className" placeholder="请输入班级名称" clearable></el-input>
+              <el-form-item label="姓名" prop="name">
+                <el-input v-model="data.name" placeholder="请输入老师姓名" clearable></el-input>
               </el-form-item>
             </el-col>
             <el-col class="mb20" :span="18">
-              <el-form-item label="班主任" prop="headTeacherId">
-                <el-select v-model="data.headTeacherId" placeholder="请选择" class="w100">
-                  <el-option v-for="item in teachers" :label="item.name" :value="item.id" :key="item.id"></el-option>
-                </el-select>
+              <el-form-item label="用户名" prop="userName">
+                <el-input v-model="data.userName" placeholder="请输入账号" clearable></el-input>
               </el-form-item>
             </el-col>
           </el-col>
@@ -42,13 +40,44 @@
               </el-upload>
             </el-form-item>
           </el-col>
-          <el-col class="mb20" :span="18">
-            <el-form-item label="班级简介" prop="describe">
-              <el-input v-model="data.describe" placeholder="请输入课程描述..." clearable type="textarea" rows="4"
-                        resize="none"></el-input>
+        </el-row>
+
+        <el-row>
+          <el-col class="mb20" :span="9">
+            <el-form-item label="密码" prop="password">
+              <el-input v-model="data.password" placeholder="请输入密码" clearable></el-input>
             </el-form-item>
           </el-col>
         </el-row>
+
+        <el-row>
+          <el-col class="mb20 ml40" :span="9">
+            <el-form-item label="教师级别" prop="level">
+              <el-select v-model="data.level" placeholder="选择教师级别" class="w100">
+                <el-option label="初级教师" value="初级教师"></el-option>
+                <el-option label="中级教师" value="中级教师"></el-option>
+                <el-option label="高级教师" value="高级教师"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="4"></el-col>
+          <el-col class="mb20 ml40" :span="9">
+            <el-form-item label="手机" prop="phone">
+              <el-input v-model="data.phone" placeholder="请输入手机" clearable></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col class="mb20" :span="9">
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="data.email" placeholder="请输入邮箱" clearable></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="4"></el-col>
+
+        </el-row>
+
       </el-form>
       <template #footer>
 				<span class="dialog-footer">
@@ -62,33 +91,33 @@
 
 <script lang="ts">
 import {reactive, toRefs, defineComponent, ref} from 'vue';
-import type {UploadProps, FormRules, FormInstance} from 'element-plus'
-import {ElMessage, UploadInstance} from 'element-plus'
-import { ClassDialog} from "/@/views/class/interface";
-import {addClass} from "/@/api/class";
-import {initTeacherTable} from "/@/api/teacher";
+import type {UploadProps, FormRules, FormInstance, UploadInstance} from 'element-plus'
+import {ElMessage} from 'element-plus'
+import {TeacherDialog} from "/@/views/teacher/interface";
+import {addTeacher} from "/@/api/teacher";
 
 export default defineComponent({
-  name: 'addClass',
+  name: 'addTeacher',
   setup: function (_, {emit}) {
     const formRef = ref<FormInstance>()
     const uploadRef=ref<UploadInstance>()
     const VITE_UPLOAD_IMG = import.meta.env.VITE_UPLOAD_IMG
-    const state = reactive<ClassDialog>({
+
+    const state = reactive<TeacherDialog>({
       isShowDialog: false,
       data: {
         id: -1,
+        name: '',
+        userName: '',
+        password: '',
         cover: '',
-        className: '',
-        describe: '',
-        headTeacherId: '',
-        headTeacherName: '',
-        studentNum: 0,
-        createTime: '',
+        phone: '',
+        email:'',
+        level:'',
+        createTime:'',
+        introduction: '',
       },
-      teachers: []
     });
-
     // 打开弹窗
     const openDialog = () => {
       state.isShowDialog = true;
@@ -97,27 +126,17 @@ export default defineComponent({
     const closeDialog = () => {
       state.isShowDialog = false;
     };
-    const resetData = () => {
-      // 重置表单数据
-      state.data.className = ''
-      state.data.cover = '';
-      state.data.describe = '';
-      state.data.headTeacherId = '';
-      state.teachers=[]
-      // 重置上传
+    const resetData=()=>{
+      state.data.id=-1;
+      state.data.name='';
+      state.data.introduction='';
+      state.data.userName='';
+      state.data.password='';
+      state.data.cover='';
+      state.data.phone='';
+      state.data.level='';
+      state.data.email=''
       uploadRef.value!.clearFiles()
-    }
-    const getAllTeachers = () => {
-      initTeacherTable().then((res) => {
-        const arr:any[] = [];
-        res.data.forEach((val: any) => {
-          arr.push({
-            id: val.id,
-            name:val.name,
-          })
-        })
-        state.teachers=arr
-      })
     }
     // 取消
     const onCancel = () => {
@@ -132,17 +151,20 @@ export default defineComponent({
       await formEl.validate((valid) => {
         if (valid) {
           // 对表单进行提交
-          addClass({
-            className: state.data.className
+          addTeacher({
+            name: state.data.name
+            , username: state.data.userName
+            , password: state.data.password
+            , number: state.data.phone
+            , level: state.data.level
             , img: state.data.cover
-            , introduction: state.data.describe
-            , headTeacherId: Number(state.data.headTeacherId)
-          }).then((res: any) => {
-            if (res.code == 200) {
+            ,email:state.data.email
+          }).then((res:any) => {
+            if(res.code==200){
               ElMessage.success('添加成功')
               emit('tableChange')
               closeDialog();
-            } else {
+            }else{
               ElMessage.error('添加失败:'+res.msg)
             }
           })
@@ -170,7 +192,7 @@ export default defineComponent({
       if (response.code == 200) {
         state.data.cover = response.data
         ElMessage.success('上传图片成功')
-      } else {
+      }else{
         ElMessage.error('上传图片失败:'+response.msg)
       }
     }
@@ -178,17 +200,32 @@ export default defineComponent({
 
     //表单验证规则
     const rules = reactive<FormRules>({
-      className: [
-        {required: true, message: '输入课程名称', trigger: 'blur'},
+      name: [
+        {required: true, message: '输入老师姓名', trigger: 'blur'},
         {max:20,message:'最大长度20个字符',trigger:'blur'}
       ],
-      headTeacherId: [
-        {required: true, message: '请选择班主任', trigger: 'change'}
+      userName: [
+        {required: true, message: '输入账号', trigger: 'blur'},
+        {max:30,message:'最大长度30个字符',trigger:'blur'}
       ],
-      describe: [
-        {required: true, message: '请输入班级描述', trigger: 'blur'},
-        {max:50,message:'最大长度50个字符',trigger:'blur'}
+      password: [
+        {required: true, message: '请输入密码', trigger: 'blur'},
+        {max:30,message:'最大长度30个字符',trigger:'blur'}
       ],
+      level: [
+        {required: true, message: '请选择教师级别', trigger: 'blur'},
+      ],
+      phone:[
+        {max:11,message:'最大长度11个字符',trigger:'blur'}
+      ],
+      email:[
+        {max:30,message:'最大长度30个字符',trigger:'blur'},
+        {
+          pattern:/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/,
+          message:'请输入正确的邮箱格式',
+          trigger:'blur'
+        }
+      ]
     })
 
 
@@ -200,7 +237,6 @@ export default defineComponent({
       beforeCoverUpload,
       handleAvatarSuccess,
       resetData,
-      getAllTeachers,
       VITE_UPLOAD_IMG,
       ...toRefs(state),
       rules,

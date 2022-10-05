@@ -137,7 +137,7 @@ export default defineComponent({
               emit('tableChange')
               closeDialog();
             } else {
-              ElMessage.error('修改失败！')
+              ElMessage.error('修改失败！'+res.msg)
             }
           })
         } else {
@@ -166,7 +166,7 @@ export default defineComponent({
         state.data.cover = response.data
         ElMessage.success('上传图片成功')
       }else{
-        ElMessage.error('上传图片失败')
+        ElMessage.error('上传图片失败'+response.msg)
       }
     }
 

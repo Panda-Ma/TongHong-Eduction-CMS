@@ -1,7 +1,7 @@
 <template>
-  <div class="select-Course">
-    <el-dialog title="关联课程" v-model="isShowDialog" width="769px" @close="resetData">
-      <el-transfer v-model="value" :data="data" :button-texts="['删除','添加']" :titles="['未关联课程', '已关联课程']">
+  <div class="link-Class">
+    <el-dialog title="关联班级" v-model="isShowDialog" width="769px" @close="resetData">
+      <el-transfer v-model="value" :data="data" :button-texts="['删除','添加']" :titles="['未关联班级', '已关联班级']">
 
       </el-transfer>
 
@@ -18,9 +18,9 @@
 <script lang="ts">
 import {defineComponent, reactive, ref, toRefs} from "vue";
 import {ElMessage} from "element-plus";
-import {initCourseTable} from "/@/api/course";
-import {Course} from "/@/views/course/interface";
-import {bindCourse, getLinkedCourse} from "/@/api/class";
+import { initClassTable} from "/@/api/class";
+import {bindClass, getLinkedClass} from "/@/api/student";
+import {Class} from "/@/views/class/interface";
 
 interface Option {
   key: number
@@ -29,33 +29,33 @@ interface Option {
 }
 
 export default defineComponent({
-  name: "selectCourse",
+  name: "linkClass",
   setup: () => {
     const state = reactive({
       isShowDialog: false,
-      classId: -1,
+      studentId: -1,
     })
     const data = ref<Option[]>([])
     const value = ref<Option[]>([])
 
     // 打开弹窗
-    const openDialog = (classId: any) => {
+    const openDialog = (id: any) => {
       state.isShowDialog = true;
-      state.classId = classId
+      state.studentId = id
 
       // 获取全部课程信息
-      initCourseTable().then((res: any) => {
-        res.data.forEach((val: Course) => {
+      initClassTable().then((res: any) => {
+        res.data.forEach((val: Class) => {
           data.value.push({
             key: val.id,
-            label: val.courseName,
+            label: val.className,
             disabled: false
           })
         })
       })
       // 获取该班级已绑定的信息
-      getLinkedCourse({
-        classId:state.classId
+      getLinkedClass({
+        studentId:state.studentId
       }).then((res)=>{
         value.value=res.data
       })
@@ -67,7 +67,7 @@ export default defineComponent({
     };
     const resetData = () => {
       // 重置数据
-      state.classId = -1;
+      state.studentId = -1;
       data.value = []
       value.value = []
     }
@@ -78,15 +78,15 @@ export default defineComponent({
 
     // 提交前的表单验证
     const onSubmit = async () => {
-      bindCourse({
-        id: state.classId,
+      bindClass({
+        id: state.studentId,
         ids:value.value
       }).then((res: any) => {
         if (res.code === 200) {
-          ElMessage.success('成功添加课程')
+          ElMessage.success('成功关联班级')
           closeDialog();
         } else {
-          ElMessage.error('抱歉，添加课程失败')
+          ElMessage.error('抱歉，关联班级失败')
         }
       })
     }

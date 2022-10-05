@@ -172,7 +172,7 @@ export default defineComponent({
           if (res.code == 200) {
             ElMessage.success('成功删除所选课程');
             initTableData()
-          } else ElMessage.error('删除失败:', res.msg)
+          } else ElMessage.error('删除失败:'+ res.msg)
         })
       }).catch(() => {
 
@@ -227,7 +227,7 @@ export default defineComponent({
         if (res.code == 200) {
           resetData(res)
         } else {
-          ElMessage.error('抱歉,搜索失败...', res.msg)
+          ElMessage.error('抱歉,搜索失败...'+ res.msg)
         }
         state.loading = false // 加载动画结束
       })

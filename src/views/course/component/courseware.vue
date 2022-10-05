@@ -76,7 +76,7 @@ export default defineComponent({
         emit('tableChange')
         closeDialog()
       } else
-        ElMessage.error('上传资料失败:',response.msg)
+        ElMessage.error('上传资料失败:'+response.msg)
     }
     return {
       ...toRefs(state),

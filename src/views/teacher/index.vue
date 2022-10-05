@@ -26,25 +26,25 @@
       <el-table :data="currentData" style="width: 100%" @selection-change="selectionChange" ref="tableRef" v-loading="loading">
         <el-table-column type="selection"></el-table-column>
         <el-table-column label="主键" v-if="false" prop="id"></el-table-column>
-        <el-table-column prop="avatar" label="头像" align="center" width="100px">
+        <el-table-column prop="cover" label="头像" align="center" width="100px">
           <template #default="scope" >
-            <el-image :preview-src-list="[scope.row.avatar]" :src="scope.row.avatar"
+            <el-image :preview-src-list="[scope.row.cover]" :src="scope.row.cover"
                       fit="contain" preview-teleported style="width: 100%;min-height: 50px">
             </el-image>
           </template>
         </el-table-column>
-        <el-table-column prop="userName" label="姓名" align="center" width="100px"></el-table-column>
-        <el-table-column prop="account" label="账号"  align="center" ></el-table-column>
+        <el-table-column prop="name" label="姓名" align="center" width="100px"></el-table-column>
+        <el-table-column prop="userName" label="账号"  align="center" ></el-table-column>
+        <el-table-column prop="password" label="密码"  align="center" ></el-table-column>
         <el-table-column prop="level" label="级别" align="center" width="105px">
           <template #default="scope">
-            <el-tag type="info" v-if="scope.row.level==='初级讲师'">初级讲师</el-tag>
-            <el-tag type="success" v-else-if="scope.row.level==='中级讲师'">中级讲师</el-tag>
-            <el-tag v-else>高级讲师</el-tag>
+            <el-tag type="info" v-if="scope.row.level==='初级教师'">初级教师</el-tag>
+            <el-tag type="success" v-else-if="scope.row.level==='中级教师'">中级教师</el-tag>
+            <el-tag v-else>高级教师</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="phone" label="手机号码"  align="center" width="120px"></el-table-column>
         <el-table-column prop="email" label="电子邮箱" show-overflow-tooltip align="center" ></el-table-column>
-        <el-table-column prop="createTime" label="添加人/时间" align="center" width="120px"></el-table-column>
         <el-table-column label="操作" align="center" width="100px">
           <template #default="scope">
             <el-button size="small" text type="primary" @click="onEdit(scope.row)">
@@ -68,16 +68,19 @@
       >
       </el-pagination>
     </el-card>
-    <AddCourse ref="addCourseRef"></AddCourse>
+    <AddTeacher ref="addTeacherRef" @tableChange='initTableData'></AddTeacher>
+    <EditTeacher ref="editTeacherRef" @tableChange='initTableData'></EditTeacher>
   </div>
 </template>
 
 <script lang="ts">
 import {reactive, toRefs, defineComponent, onMounted, ref, computed} from 'vue';
 import SvgIcon from "/@/components/svgIcon/index.vue";
-import AddCourse from "/@/views/course/component/addCourse.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {Teacher} from "/@/views/teacher/interface";
+import AddTeacher from "/@/views/teacher/component/addTeacher.vue";
+import EditTeacher from "/@/views/teacher/component/editTeacher.vue";
+import {deleteTeacher, initTeacherTable, searchTeacherInfo} from "/@/api/teacher";
 
 
 // 页面数据：表格数据、分页数据
@@ -89,46 +92,56 @@ interface TableState {
     pageSize: number;   // 每页显示的页数
 }
 
+
 export default defineComponent({
   name: 'teacher',
-  components: {AddCourse, SvgIcon},
+  components: {EditTeacher, AddTeacher, SvgIcon},
   setup() {
-    const addCourseRef = ref()
+    const addTeacherRef = ref()
+    const editTeacherRef = ref()
     const tableRef = ref()
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
 
     const state = reactive<TableState>({
-        data: [],
-        total: 0,
-        loading: false,
-        currentPage: 1,
-        pageSize: 10,
+      data: [],
+      total: 0,
+      loading: false,
+      currentPage: 1,
+      pageSize: 10,
     });
     const currentData = computed(() => {
       return state.data.slice((state.currentPage - 1) * state.pageSize, state.currentPage * state.pageSize)
     })
     // 初始化表格数据
     const initTableData = () => {
-      const data: Array<Teacher> = [];
-      for (let i = 0; i < 300; i++) {
-        data.push({
-          id: 1,
-          avatar: 'https://all.haoapk.cn/s2/image/iwcpxlja7bn903sz4mv2hgkudrtf1yoe.jpeg',
-          userName: `${i}`,
-          account:'1233dsf',
-          level:'老师',
-          phone: '12345678912345',
-          email: 'vueNextAdmin@123.com',
-          createTime: new Date().toLocaleString(),
-        });
-      }
-      state.data = data;
-      state.total = data.length;
+      initTeacherTable().then((res) => {
+        resetData(res)
+      })
     };
+    // 更新表格数据
+    const resetData = (res: any) => {
+      const arr: Array<Teacher> = [];
+      res.data.forEach((val: any) => {
+        arr.push({
+          id: val.id,
+          cover: val.img,
+          name:val.name,
+          userName:val.username,
+          password:val.password,
+          level:val.level,
+          phone:val.number,
+          email:val.email,
+          createTime: val.createTime,
+          introduction: val.introduction
+        })
+      })
+      state.data = arr;
+      state.total = arr.length;
+    }
     // 添加
     const onAdd = () => {
-      addCourseRef.value.openDialog()
+      addTeacherRef.value.openDialog()
     }
     const onDeleteAll = () => {
       let arr = tableRef.value.getSelectionRows().map((ele: any) => ele.id)
@@ -138,19 +151,33 @@ export default defineComponent({
         type: 'warning',
       })
           .then(() => {
-            ElMessage.success('删除成功');
+            deleteTeacher({
+              ids: arr
+            }).then((res: any) => {
+              if (res.code == 200) {
+                ElMessage.success('成功删除所选老师');
+                initTableData()
+              } else ElMessage.error('删除失败')
+            })
           })
           .catch(() => {
           });
     }
     const onDelete = (row: Teacher) => {
-      ElMessageBox.confirm(`此操作将永久删除该老师：${row.userName}, 是否继续`, '确认', {
+      ElMessageBox.confirm(`此操作将永久删除老师：${row.name}, 是否继续`, '确认', {
         confirmButtonText: '删除',
         cancelButtonText: '取消',
         type: 'warning',
       })
           .then(() => {
-            ElMessage.success('删除成功');
+            deleteTeacher({
+              ids: [row.id]
+            }).then((res: any) => {
+              if (res.code == 200) {
+                ElMessage.success('成功删除该班级');
+                initTableData()
+              } else ElMessage.error('删除失败')
+            })
           })
           .catch(() => {
           });
@@ -162,18 +189,22 @@ export default defineComponent({
     // 搜索框
     const search= () => {
       state.loading=true
+      console.log(searchKey.value);
       searchTeacherInfo({
         keyword: searchKey.value
       }).then((res: any) => {
         if (res.code == 200) {
           resetData(res)
         } else {
-          ElMessage.error('抱歉,搜索失败...', res.msg)
+          ElMessage.error('抱歉,搜索失败...'+res.msg)
         }
         state.loading = false // 加载动画结束
       })
     }
 
+    const onEdit = (row: Teacher) => {
+      editTeacherRef.value.openDialog(row)
+    }
     // 页面加载时
     onMounted(() => {
       initTableData();
@@ -181,15 +212,18 @@ export default defineComponent({
     return {
       ...toRefs(state),
       tableRef,
-      addCourseRef,
+      addTeacherRef,
+      editTeacherRef,
       searchKey,
       currentData,
       search,
       selectionChange,
+      initTableData,
       onAdd,
       onDelete,
       onDeleteAll,
-      isDisable
+      isDisable,
+      onEdit,
     };
   },
 });

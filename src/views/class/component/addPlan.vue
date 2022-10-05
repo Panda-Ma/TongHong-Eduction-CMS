@@ -125,7 +125,8 @@ export default defineComponent({
     //表单验证规则
     const rules = reactive<FormRules>({
       context: [
-        {required: true, message: '输入课程名称', trigger: 'blur'}
+        {required: true, message: '输入计划内容', trigger: 'blur'},
+        {max:50,message:'最大长度50个字符',trigger:'blur'}
       ],
       targetTime: [
         {required: true, message: '请选择开始时间', trigger: 'blur'}

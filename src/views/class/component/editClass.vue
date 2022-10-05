@@ -149,7 +149,7 @@ export default defineComponent({
               emit('tableChange')
               closeDialog();
             } else {
-              ElMessage.error('修改失败:', res.msg)
+              ElMessage.error('修改失败:'+res.msg)
             }
           })
         } else {
@@ -177,7 +177,7 @@ export default defineComponent({
         state.data.cover = response.data
         ElMessage.success('上传图片成功')
       } else {
-        ElMessage.error('上传图片失败:', response.msg)
+        ElMessage.error('上传图片失败:'+ response.msg)
       }
     }
 
@@ -185,13 +185,15 @@ export default defineComponent({
     //表单验证规则
     const rules = reactive<FormRules>({
       className: [
-        {required: true, message: '输入课程名称', trigger: 'blur'}
+        {required: true, message: '输入课程名称', trigger: 'blur'},
+        {max:20,message:'最大长度20个字符',trigger:'blur'}
       ],
       headTeacherId: [
         {required: true, message: '请选择班主任', trigger: 'change'}
       ],
       describe: [
-        {required: true, message: '请输入班级描述', trigger: 'blur'}
+        {required: true, message: '请输入班级描述', trigger: 'blur'},
+        {max:50,message:'最大长度50个字符',trigger:'blur'}
       ],
     })
 

@@ -44,7 +44,7 @@
         <el-table-column prop="createTime" label="创建时间" align="center" width="100"></el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
-            <el-button size="small" text type="primary" @click="onOpenCourse(scope.row)">
+            <el-button size="small" text type="primary" @click="onLinkCourse(scope.row)">
               课程
             </el-button>
             <el-button size="small" text type="primary" @click="onOpenPlan(scope.row)">
@@ -73,7 +73,7 @@
     </el-card>
     <AddClass ref="addClassRef" @tableChange="initTableData"></AddClass>
     <EditClass ref="editClassRef" @tableChange="initTableData"></EditClass>
-    <select-course ref="selectCourseRef"></select-course>
+    <link-course ref="linkCourseRef"></link-course>
   </div>
 </template>
 
@@ -86,7 +86,7 @@ import AddClass from "/@/views/class/component/addClass.vue";
 import EditClass from "/@/views/class/component/editClass.vue";
 import {deleteClass, initClassTable, searchClassInfo} from "/@/api/class";
 import {useRouter} from "vue-router";
-import SelectCourse from "/@/views/class/component/selectCourse.vue";
+import LinkCourse from "/@/views/class/component/linkCourse.vue";
 
 // 页面数据：表格数据、分页数据
 interface TableState {
@@ -99,11 +99,11 @@ interface TableState {
 
 export default defineComponent({
   name: 'class',
-  components: {SelectCourse, AddClass, SvgIcon,EditClass},
+  components: {LinkCourse, AddClass, SvgIcon,EditClass},
   setup() {
     const addClassRef = ref()
     const editClassRef = ref()
-    const selectCourseRef=ref()
+    const linkCourseRef=ref()
     const tableRef = ref()
     const isDisable = ref(true) // 按钮禁用状态
     const searchKey = ref('')   // 搜索关键字
@@ -200,13 +200,13 @@ export default defineComponent({
         if (res.code == 200) {
           resetData(res)
         } else {
-          ElMessage.error('抱歉,搜索失败...', res.msg)
+          ElMessage.error('抱歉,搜索失败...'+ res.msg)
         }
         state.loading = false // 加载动画结束
       })
     }
-    const onOpenCourse=(row:Class)=>{
-      selectCourseRef.value.openDialog(row.id)
+    const onLinkCourse=(row:Class)=>{
+      linkCourseRef.value.openDialog(row.id)
     }
 
     // 点击计划按钮
@@ -243,8 +243,8 @@ export default defineComponent({
       isDisable,
       onEdit,
       onOpenPlan,
-      onOpenCourse,
-      selectCourseRef
+      onLinkCourse,
+      linkCourseRef
     };
   },
 });
