@@ -57,7 +57,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 					isKeepAlive: true,
 					isAffix: true,
 					isIframe: false,
-					roles: ['admin','common'],
+					roles: ['admin'],
 					icon: 'ele-Avatar',
 				},
 			},
@@ -168,7 +168,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
-					roles: ['admin'],
+					roles: ['admina'],
 					icon: 'iconfont icon-xitongshezhi',
 				},
 				children: [

@@ -3,7 +3,6 @@ import { storeToRefs } from 'pinia';
 import { formatTwoStageRoutes, formatFlatteningRoutes, router } from '/@/router/index';
 import { dynamicRoutes, notFoundAndNoPower } from '/@/router/route';
 import pinia from '/@/stores/index';
-import { Session } from '/@/utils/storage';
 import { useUserInfo } from '/@/stores/userInfo';
 import { useTagsViewRoutes } from '/@/stores/tagsViewRoutes';
 import { useRoutesList } from '/@/stores/routesList';

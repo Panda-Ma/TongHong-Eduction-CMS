@@ -1,6 +1,6 @@
 <template>
   <div class="edit-teacher-container">
-    <el-dialog title="添加老师" v-model="isShowDialog" width="769px" @close="resetData">
+    <el-dialog title="修改老师" v-model="isShowDialog" width="769px" @close="resetData">
       <el-form :model="data" size="default" label-width="90px" label-position="top" :rules="rules"
                ref="formRef">
         <el-row>

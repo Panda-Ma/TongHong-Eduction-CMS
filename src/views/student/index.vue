@@ -14,12 +14,14 @@
           </el-icon>
           批量删除
         </el-button>
-        <el-button size="default" type="primary" class="ml10" @click="onUploadStudent" plain>
-          <el-icon>
-            <ele-Plus/>
-          </el-icon>
-          批量上传
-        </el-button>
+
+<!--        <el-button size="default" type="primary" class="ml10" @click="onUploadStudent" plain>-->
+<!--          <el-icon>-->
+<!--            <ele-Plus/>-->
+<!--          </el-icon>-->
+<!--          批量上传-->
+<!--        </el-button>-->
+
         <el-input v-model="searchKey" placeholder="搜索..." clearable class="w-50 m-2" size="default"
                   style="max-width: 300px;position: absolute;right: 30px">
           <template #append>
