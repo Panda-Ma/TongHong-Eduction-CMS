@@ -207,7 +207,7 @@ export default defineComponent({
           if (res.code == 200) {
             ElMessage.success('成功删除该课程');
             initTableData()
-          } else ElMessage.error('删除失败')
+          } else ElMessage.error('删除失败:'+res.msg)
         })
       }).catch(() => {
 

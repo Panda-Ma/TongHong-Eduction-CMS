@@ -215,6 +215,7 @@ export default defineComponent({
         {required: true, message: '请选择教师级别', trigger: 'blur'},
       ],
       phone:[
+        {required: true, message: '请输入手机号', trigger: 'blur'},
         {max:11,message:'最大长度11个字符',trigger:'blur'}
       ],
       email:[
